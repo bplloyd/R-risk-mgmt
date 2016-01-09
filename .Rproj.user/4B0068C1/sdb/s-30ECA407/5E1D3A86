@@ -1,0 +1,17 @@
+{
+    "contents" : "loadSubAdvisors = function(startDate){\n  require(RODBC)\n  cn = odbcDriverConnect(\"driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true\")\n  require(xts)\n  subs = sqlQuery(cn,\"select * from v_Sub_Returns_Daily_Pivoted AS v where v.datereported >= '7-1-2009' order by v.datereported\")\n  subs = as.xts(subs[,2:25], order.by = as.Date.POSIXct(subs$DateReported))\n  ed.subs = subs[,1:4]\n  lse.subs = subs[,5:10]\n  mn.subs = subs[,11:13]\n  lsd.subs = subs[,14:20]\n  mf.subs = subs[,21:24]\n  names(ed.subs) = c('Front4', 'Moab', 'Mntr', 'WOak')\n  names(lse.subs) = c('Coe', 'ISF', 'APIS', 'BlueJay', 'BoardmanBay', 'Lorem')\n  names(mn.subs) = c('Jadwin', 'Longbow', 'Nicholas')\n  names(lsd.subs) = c('Lutetium', 'Matlin', 'MiscII', 'Phoenix', 'RavenRock', 'Soundpoint', 'SmithBreeden')\n  names(mf.subs) = c('Centurion', 'Dominion', 'Revolution', 'Row')\n  return(merge.xts(ed.subs, mn.subs, lsd.subs, lse.subs, mf.subs))\n}\n",
+    "created" : 1452312863949.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2974499642",
+    "id" : "5E1D3A86",
+    "lastKnownWriteTime" : 1452312832,
+    "path" : "~/GitHub/R-risk-mgmt/loadSubAdvisors.R",
+    "project_path" : "loadSubAdvisors.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}

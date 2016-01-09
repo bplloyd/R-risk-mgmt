@@ -1,0 +1,18 @@
+{
+    "contents" : "nVaRExceptions = function(x, p=0.99, n=126){\n  rollingVaR = nVaRBounds(x, p = p, n = n)\n  return(rollingVaR[which(rollingVaR$DailyReturn < rollingVaR$VaR_0.99 | rollingVaR$DailyReturn > rollingVaR$VaR_0.01),])\n}",
+    "created" : 1452313143978.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2339142459",
+    "id" : "913F82AA",
+    "lastKnownWriteTime" : 1452313157,
+    "path" : "~/GitHub/R-risk-mgmt/nVaRExceptions.R",
+    "project_path" : "nVaRExceptions.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
