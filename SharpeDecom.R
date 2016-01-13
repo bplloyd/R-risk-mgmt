@@ -27,7 +27,7 @@ sharpeDecomp = function(port, weights=NULL, Rf = 0){
   }
   port.ret = port %>% apply(1, function(x)return(sum(x*weights))) %>% xts(order.by = index(port))
   port.sd = (port.ret %>% sd())*sqrt(252)
-  ind.ret = (port %>% apply(MARGIN = 2, FUN = function(x)return((1+x) %>% log() %>% mean() %>% exp())))^(252) - 1
+  ind.ret = (port %>% apply(MARGIN = 2, FUN = function(x)return(prod(1+x)^(252/nrow(x)) - 1)))
   ind.sd = (port %>% apply( MARGIN = 2, FUN = sd))*sqrt(252)
   ind.sharpe = (ind.ret - Rf)/ind.sd
   ind.corToPort = table.Correlation(port, port.ret)[,1]

@@ -1,4 +1,4 @@
-loadSubAdvisors = function(startDate){
+loadSubAdvisors = function(){
   require(RODBC)
   cn = odbcDriverConnect("driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true")
   require(xts)
