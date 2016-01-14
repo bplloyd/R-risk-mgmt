@@ -1,7 +1,10 @@
 loadUFTs = function(){
   require(RODBC)
-  cn = odbcDriverConnect("driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true")
+  require(magrittr)
   require(xts)
+  require(PerformanceAnalytics)
+  cn = odbcDriverConnect("driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true")
+  
   ufts = sqlQuery(cn,"select p.DateReported, p.[777] 'MF', p.[782] 'MN', p.[783] 'ED', p.[784] 'LSD', p.[785] 'LSE' from 
 (
   select CAST(v.DateReported as datetime) 'DateReported', v.Fund_UID, v.NAV from 
@@ -11,5 +14,5 @@ loadUFTs = function(){
   order by P.DateReported")
   ufts = as.xts(ufts[,2:6], order.by = as.Date.POSIXct(ufts$DateReported))
   #names(ufts) = c('MF', 'MN', 'ED', 'LSD', 'LSE')
-  return(ufts)
+  return(ufts %>% CalculateReturns())
 }
