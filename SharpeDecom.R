@@ -25,6 +25,7 @@ sharpeDecomp = function(port, weights=NULL, Rf = 0){
   }else{
     weights = weights/sum(weights)
   }
+<<<<<<< HEAD
   port.ret = port %>% apply(1, function(x)return(sum(x*weights))) %>% xts(order.by = index(port))
   port.sd = (port.ret %>% sd())*sqrt(252)
   ind.ret = (port %>% apply(MARGIN = 2, FUN = function(x)return((1+x) %>% log() %>% mean() %>% exp())))^(252) - 1
@@ -36,4 +37,17 @@ sharpeDecomp = function(port, weights=NULL, Rf = 0){
   result = rbind(weights, ind.riskWeight, ind.corToPort, 1/ind.corToPort, ind.sharpe, componentSharpe, ind.riskWeight*componentSharpe)
   rownames(result) = c('Weights','WeightedRisk', 'CorrToPort', 'DiversBenefits', 'IndivSharpe', 'CompSharpe', 'ContributionToSharpe')
   return(result)
+=======
+  port.ret = port %>% apply(1, function(x)return(x%*%weights)) %>% xts(order.by = index(port))
+  port.sd = (port.ret %>% sd())*sqrt(252)
+  ind.ret = (port %>% apply( MARGIN = 2, FUN = function(x)return(exp(sum(log(1+x)))-1)))^252
+  ind.sd = (port %>% apply( MARGIN = 2, FUN = sd))*sqrt(252)
+  ind.sharpe = port %>% apply(MARGIN = 2, FUN = function(x)return(mean.))
+  ind.corToPort = table.Correlation(port, port.ret)[,1];
+  ind.riskWeight = ind.sd*ind.corToPort*weights/port.sd;
+  componentSharpe = ind.sharpe * (1/ind.corToPort);
+  result = rbind(weights, ind.riskWeight, ind.corToPort, 1/ind.corToPort, ind.sharpe, componentSharpe, ind.riskWeight*componentSharpe);
+  rownames(result) = c('Weights','WeightedRisk', 'CorrToPort', 'DiversBenefits', 'IndivSharpe', 'CompSharpe', 'ContributionToSharpe');
+  return(result);
+>>>>>>> 5c521bfb5f32be3f2bf91d81b77edf0738c070d2
 }
