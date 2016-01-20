@@ -1,0 +1,1 @@
+quandl.key = 'gEzLwhacDG4Uhgv9ZQ9j'
