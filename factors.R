@@ -1,0 +1,1 @@
+factors = data.frame(name = c("USD.Index", "10yTreas", "Vix", "WTI.Crude","USTreasuryBillRates", "USTreasuryYields", "MLHY.WSJ"), code = c("FRED/DTWEXM", "FRED/GS10", "CBOE/VIX", "FRED/DCOILWTICO", "USTREASURY/BILLRATES","USTREASURY/YIELD", "WSJ/MLCHY"))
