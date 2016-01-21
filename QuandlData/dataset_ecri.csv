@@ -1,0 +1,4 @@
+id,dataset_code,database_code,name,description,refreshed_at,newest_available_date,oldest_available_date,column_names,frequency,type,premium,database_id
+2411767,USLEADING,ECRI,U.S. Weekly Leading Index,Has a moderate lead over cyclical turns in U.S. economic activity. Historical data begins in 1967.,2016-01-11 07:24:32 UTC,1/1/2016,1/6/1967,"[""Week"", ""Level"", ""Growth""]",weekly,Time Series,FALSE,436
+2411768,USCOIN,ECRI,U.S. Monthly Coincident Index,Coincides with U.S. economic cycles. Historical data begins in 1919.,2016-01-11 07:07:29 UTC,11/1/2015,1/1/1948,"[""Week"", ""Level"", ""Growth""]",monthly,Time Series,FALSE,436
+2411769,USLAGGING,ECRI,U.S. Monthly Lagging Index,Lags cyclical turns in U.S. economic activity. Historical data begins in 1948.,2016-01-11 07:08:58 UTC,11/1/2015,1/1/1948,"[""Week"", ""Level"", ""Growth""]",monthly,Time Series,FALSE,436
