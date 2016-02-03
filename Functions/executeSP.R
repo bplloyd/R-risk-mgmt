@@ -7,4 +7,3 @@ executeSP <- function(procname, paramstring, db = "Hatteras_Sandbox_Tools"){
   res = sqlQuery(ch, query);
   return(res);
 }
-result = sqlQuery(ch,"execute dbo.usp_GetPOFNAVS")
