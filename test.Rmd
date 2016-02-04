@@ -1,0 +1,19 @@
+---
+output: html_document
+---
+#Daily VaR report
+```{r, echo=F, message=FALSE, warning=F}
+source('loadUp.R')
+library(rmarkdown)
+#subs = loadSubAdvisors()
+pofs = loadPOFs()
+ufts = loadUFTs()
+reportDate = end(ufts['/20160129'])
+```
+Date: `r reportDate`
+```{r, echo=F, message=FALSE}
+library(xtable)
+ufts.table = xtable(dailyExceptions(ufts['/20160129']))
+print(ufts.table)
+```
+

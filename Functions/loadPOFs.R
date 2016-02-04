@@ -5,22 +5,38 @@ loadPOFs = function(){
   require(PerformanceAnalytics)
   connStr = "driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true"
   cn = odbcDriverConnect(connStr)
-  qry = "SELECT
-				p.*
-			FROM
-			(
-				select 
-					CAST(n.DateReported AS datetime) 'DateReported'
-					, c.Symbol
-					, n.NAV_Adjusted
-				from 
-					hamf.pof_nav AS n
-					LEFT JOIN hatteras_Securitydb.dbo.fundclass AS c ON n.Fund_UID = c.Fund_UID and n.FundClass_UID = c.FundClass_UID	
-			 where
-          n.FundClass_UId <> 99
-    ) AS A
-			PIVOT(MAX(A.NAV_Adjusted) FOR A.Symbol IN ([ALPHX],[ALPIX],[HHSIX],[HFINX],[HLSIX], [HMFIX])) AS P
-			ORDER BY p.DateReported"
+  qry = "WITH 
+	Dates AS
+  (
+  select distinct 
+  cast(datereported as date) 'DateReported'
+  from 
+  hatteras_securitydb.dbo.dailytotalreturn
+  )
+  SELECT
+    d.DateReported
+    , p.ALPHX
+    , p.ALPIX
+    , p.HHSIX
+    , p.HFINX
+    , p.HLSIX
+    , p.HMFIX
+  FROM
+  Dates AS d
+  JOIN
+  (
+  select 
+  CAST(n.DateReported AS datetime) 'DateReported'
+  , c.Symbol
+  , n.NAV_Adjusted
+  from 
+  hamf.pof_nav AS n
+  LEFT JOIN hatteras_Securitydb.dbo.fundclass AS c ON n.Fund_UID = c.Fund_UID and n.FundClass_UID = c.FundClass_UID	
+  where
+  n.FundClass_UId <> 99
+  ) AS A
+  PIVOT(MAX(A.NAV_Adjusted) FOR A.Symbol IN ([ALPHX],[ALPIX],[HHSIX],[HFINX],[HLSIX], [HMFIX])) AS P ON d.DateReported = P.DateReported
+  ORDER BY d.DateReported"
   pofs = sqlQuery(cn,qry)
   pofs= as.xts(pofs[,2:7], order.by = as.Date.character(pofs$DateReported))
   maxDate = as.Date.character(end(pofs), format = '%Y-%m-%d')
