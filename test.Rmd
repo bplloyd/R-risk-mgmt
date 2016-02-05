@@ -1,19 +1,74 @@
 ---
-output: html_document
+output: pdf_document
 ---
-#Daily VaR report
+#Daily 99% VaR report
 ```{r, echo=F, message=FALSE, warning=F}
 source('loadUp.R')
-library(rmarkdown)
+#library(rmarkdown)
 #subs = loadSubAdvisors()
+#subs.o = organizeSubs(subs)
 pofs = loadPOFs()
 ufts = loadUFTs()
+subs = loadSubAdvisors()
 reportDate = end(ufts['/20160129'])
 ```
 Date: `r reportDate`
-```{r, echo=F, message=FALSE}
+```{r, echo=F, message=FALSE, results = 'asis', warning=F}
 library(xtable)
-ufts.table = xtable(dailyExceptions(ufts['/20160129']))
-print(ufts.table)
+options(xtable.comment = F)
+sub.ex = dailyExceptions(subs[paste("/",reportDate, sep = "")])
+sub.ex[,2:4] = sub.ex[,2:4]*100
+names(sub.ex) = c("SubAdvisor", "Daily Return", "Lower Bound", "Upper Bound")
+uft.ex = dailyExceptions(ufts[paste("/",reportDate, sep = "")])
+uft.ex[,2:4] = uft.ex[,2:4]*100
+names(uft.ex) = c("UFT", "Daily Return", "Lower Bound", "Upper Bound")
+pof.ex = dailyExceptions(pofs[paste("/",reportDate, sep = "")])
+pof.ex[,2:4] = pof.ex[,2:4]*100
+names(pof.ex) = c("Fund", "Daily Return", "Lower Bound", "Upper Bound")
+#ufts.table = xtable(uft.ex, align = "llccc",  digits = 3)
+ufts.table = xtable(uft.ex, align = "llccc", digits = 2)
+pofs.table = xtable(pof.ex, align = "llccc", digits = 2)
+subs.table = xtable(sub.ex, align = "llccc", digits = 2)
+
 ```
+#POFs 
+
+```{r, echo=F, message=FALSE, results = 'asis'}
+print(pofs.table, floating = TRUE)
+```
+
+#UFTs
+
+```{r, echo=F, message=FALSE, results = 'asis'}
+library(ggplot2)
+print(ufts.table, floating = TRUE)
+
+#for (i in 1:nrow(uft.ex)){
+  #name = uft.ex$UFT
+  #returns = na.omit(ufts[paste("/", reportDate, sep = ""), name])
+  #bounds = nVaRBounds(returns)
+  #plotBounds(cbind.lag(returns, bounds))
+}
+```
+
+
+
+#SubAdvisors
+
+```{r, echo=F, message=FALSE, results = 'asis'}
+library(ggplot2)
+name = sub.ex$SubAdvisor[1]
+returns = na.omit(subs[paste("/", reportDate, sep = ""), name])
+bounds = nVaRBounds(returns)
+p = plotBounds(cbind.lag(returns, bounds))
+
+#for (i in 1:nrow(sub.ex)){
+ #name = sub.ex$SubAdvisor
+  #returns = na.omit(subs[paste("/", reportDate, sep = ""), name])
+  #bounds = nVaRBounds(returns)
+  #plotBounds(cbind.lag(returns, bounds))
+#}
+```
+ `r print(p)`
+
 

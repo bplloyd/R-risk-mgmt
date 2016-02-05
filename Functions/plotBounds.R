@@ -9,5 +9,5 @@ plotBounds = function(subBounds){
   p = p + scale_color_manual("", breaks = c(names(df)[4],names(df)[3]), values = c("green","red"))
   p = p + labs(title = paste(names(df)[2], sep = " "))
   p = p + ylab(paste(names(df)[2],sep = ""))
-  p
+  return(p)
 }
