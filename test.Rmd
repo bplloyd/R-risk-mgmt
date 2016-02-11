@@ -1,5 +1,5 @@
 ---
-output: html_document
+output: pdf_document
 ---
 ##Daily 99% VaR report
 ```{r, echo=F, message=FALSE, warning=F}
@@ -9,15 +9,14 @@ source('loadUp.R')
 #subs.o = organizeSubs(subs)
 pofs = loadPOFs()
 ufts = loadUFTs()
-#subs = loadSubAdvisors()
-reportDate = end(ufts['/20160208'])
+subs = loadSubAdvisors()
+reportDate = end(subs)
 ```
 Date: `r reportDate`
 ```{r, echo=F, message=FALSE, results = 'asis', warning=F}
 library(xtable)
 options(xtable.comment = F)
-#sub.ex = dailyExceptions(subs[paste("/",reportDate, sep = "")])*100
-#sub.ex[,2:4] = sub.ex[,2:4]*100
+sub.ex = dailyExceptions(subs[paste("/",reportDate, sep = "")])*100
 #names(sub.ex) = c("SubAdvisor", "Daily Return", "Lower Bound", "Upper Bound")
 uft.ex = dailyExceptions(ufts[paste("/",reportDate, sep = "")])*100
 #uft.ex[,2:4] = uft.ex[,2:4]*100
@@ -28,7 +27,7 @@ pof.ex = dailyExceptions(pofs[paste("/",reportDate, sep = "")])*100
 ufts.table = xtable(uft.ex, align = "lccc",  digits = 3)
 #ufts.table = xtable(uft.ex, align = "lccc", digits = 2)
 pofs.table = xtable(pof.ex, align = "lccc", digits = 2)
-#subs.table = xtable(sub.ex, align = "lccc", digits = 2)
+subs.table = xtable(sub.ex, align = "lccc", digits = 2)
 
 ```
 * **POFs**
@@ -56,7 +55,7 @@ print(ufts.table, floating = TRUE, type = "html")
 * **SubAdvisors**
 
 ```{r, echo=F, message=FALSE, results = 'asis'}
-#print(subs.table, floating = TRUE)
+print(subs.table, floating = TRUE)
 
 #for (i in 1:nrow(sub.ex)){
  #name = sub.ex$SubAdvisor
