@@ -1,0 +1,44 @@
+---
+output: pdf_document
+---
+
+
+#Long/Short Equity - Risk Contribution
+
+
+```{r, echo=FALSE, warning=FALSE, message=F}
+source('loadUp.R')
+library(xtable)
+library(xts)
+library(PerformanceAnalytics)
+subs = loadSubAdvisors()
+subs.o = organizeSubs(subs)
+subs.w = getAllocations()
+lse.w =  sapply(names(subs.o$LSE),  function(x)return(which(subs.w$LSE$Name==x)))
+lse.cctr.126 = rollCCTR(na.omit(subs.o$LSE), weights = lse.w, initialWindow = 126)
+lse.cctr.126 = cbind(lse.cctr.126, xts(apply(lse.cctr.126, 1, sum), order.by = index(lse.cctr.126)))
+names(lse.cctr.126)[ncol(lse.cctr.126)] = "Total"
+lse.cctr.63 = rollCCTR(na.omit(subs.o$LSE), weights = lse.w, initialWindow = 63)
+lse.cctr.63 = cbind(lse.cctr.63, xts(apply(lse.cctr.63, 1, sum), order.by = index(lse.cctr.63)))
+names(lse.cctr.63)[ncol(lse.cctr.63)] = "Total"
+lse.126.cctr.table = xtable(as.data.frame(lse.cctr.126[endpoints(lse.cctr.126, on = "months"),]), align = "lrrrrrrrr",  digits = 3)
+lse.mctr.126 = lse.cctr.126[nrow(lse.cctr.126), 1:(ncol(lse.cctr.126)-1)]/lse.w
+lse.mctr.63 = lse.cctr.63[nrow(lse.cctr.63), 1:(ncol(lse.cctr.63)-1)]/lse.w
+lse.63.cctr.table = xtable(as.data.frame(lse.cctr.63[endpoints(lse.cctr.63, on = "months"),]), align = "lrrrrrrrr",  digits = 3)
+lse.63.mctr.table = xtable(as.data.frame(lse.mctr.63), align = "lrrrrrrr",  digits = 3)
+lse.126.mctr.table = xtable(as.data.frame(lse.mctr.126), align = "lrrrrrrr",  digits = 3)      
+```
+
+* **63-day Rolling Contribution To Volatility**
+```{r, echo=FALSE, message=F, results='asis'}
+print(lse.63.cctr.table, floating = F)
+```
+
+```{r, echo=FALSE}
+chart.TimeSeries(lse.cctr.63, main = "63d Rolling Contribution To Risk - Long/Short Equity", legend.loc = "bottomleft", colorset = rainbow8equal)
+```
+
+* **126-day Rolling Contribution To Volatility**
+```{r, echo=FALSE, message=F, results='asis'}
+print(lse.126.cctr.table, floating = F)
+```
