@@ -1,3 +1,4 @@
+#CALCULATES AVG CORRELATION FROM ROLLED LIST OF CORRELATION MATRICES
 extractAvgCorrelation = function(cor.roll, includeMisc = F)
 {
     require(xts)

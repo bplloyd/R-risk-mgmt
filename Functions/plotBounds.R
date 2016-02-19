@@ -1,6 +1,10 @@
-plotBounds = function(subBounds){
+
+
+
+plotBounds = function(returns){
   require(ggplot2)
-  df = data.frame(Date = as.Date(index(subBounds)), Returns = subBounds[,1], LowBound = subBounds[,2], UBound = subBounds[,3], row.names = NULL) 
+  data = merge.xts(na.omit(returns), na.omit(nVaRBoundsRolling(returns)))
+  df = data.frame(Date = as.Date(index(data)), Returns = data[,1], LowBound = data[,2], UBound = data[,3], row.names = NULL) 
   p = ggplot(df, aes(x=Date, y = df[,2]), environment = environment()) 
   p = p + geom_bar(stat = "identity", colour = "black",width = 1) 
   p = p + geom_line(aes(y=df[,3], colour = names(df)[3]), size = 1) 

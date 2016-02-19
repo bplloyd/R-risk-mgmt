@@ -1,7 +1,10 @@
+#IMPORT NAMESPACES
 library(xts)
 library(PerformanceAnalytics)
 library(magrittr)
 library(factorAnalytics)
+
+#LOAD USER-DEFINED FUNCTIONS
 source('Functions/apply.rolling2.R')
 source('Functions/executeSP.R')
 source('Functions/loadSubAdvisors.R')
@@ -30,4 +33,15 @@ source('Functions/printBounds.R')
 source('Functions/cbind.lag.R')
 source('Functions/createTimeSlices2.R')
 source('Functions/getAllocations.R')
-load('hamfdata.RData')
+source('Functions/getWeights.R')
+source('Functions/getSpSectors.R')
+source('Functions/organizeExceptions.R')
+source('Functions/compareLevels.R')
+source('Functions/currentLevelsSubs.R')
+source('Functions/currentLevelsFunds.R')
+#GET DATA OBJECTS
+subs = loadSubAdvisors()
+subs.o = organizeSubs(subs)
+ufts = loadUFTs()
+pofs = loadPOFs()
+inds = loadIndices()

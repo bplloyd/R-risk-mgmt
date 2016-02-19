@@ -1,19 +1,33 @@
-rollTsfm2 = function(assets, factors, data, fit.method = "LS", variable.selection = "none", slices){
+rollTsfm2 = function(assets, factors, fit.method = "LS", variable.selection = "none", window = 126, on = "days"){
   require(factorAnalytics)
   require(fPortfolio)
   require(xts)
-
-  rollingModel = vector(mode = "list", length = length(slices[[1]]))
-  for(i in 1:length(rollingModel)){
-      from = index(data)[slices[[1]][[i]][1]]
-      to = index(data)[slices[[1]][[i]][length(slices[[1]][[i]])]]
-      names(rollingModel)[i]= paste(to)
-      rollingModel[[i]] = fitTsfm( 
-                            asset.names = assets, factor.names = factors,
-                            data = data[slices[[1]][[i]],],
-                            fit.method = fit.method,
-                            variable.selection = variable.selection
-                          )
-  }
-  return(rollingModel)
+  assets = assets[which(rowSums(is.na(assets)) < ncol(assets)),]
+  merged = merge.xts(assets, factors[index(assets),])
+  slices = createTimeSlices2(merged, initialWindow = window, fixedWindow = T, on = on)
+  
+  return(lapply(slices,
+                        FUN = function(x)return(fitTsfm(asset.names = names(assets)[which(colSums(is.na(assets[x,]))==0)], 
+                                                        factor.names = names(factors),
+                                                        data = merged[x,],
+                                                        fit.method = fit.method,
+                                                        variable.selection = variable.selection
+                                                        )
+                                                )
+                        )
+        )
+  
+#   for(i in 1:length(rollingModel)){
+#       from = slices[[i]][1]
+#       to = slices[[i]][window]
+#       
+#       names(rollingModel)[i]= paste(to)
+#       rollingModel[[i]] = fitTsfm( 
+#                             asset.names = names(assets), factor.names = names(factors),
+#                             data = merged[slices[[i]],],
+#                             fit.method = fit.method,
+#                             variable.selection = variable.selection
+#                           )
+#   }
+  #return(rollingModel)
 }

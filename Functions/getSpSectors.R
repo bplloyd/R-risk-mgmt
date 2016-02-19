@@ -4,7 +4,7 @@ getSpSectors = function(inds=NULL){
   if(is.null(inds))
       inds = loadIndices()
   
-  sp = inds[,grep("SPTR", names(ind))]
+  sp = inds[,grep("SPTR", names(inds))]
   sp = sp[,-which(names(sp) %in% c("SPTR","SPTRSGX", "SPTRSVX", "SPTRTRNS"))]
   
   allNA = which(apply(sp, 1, function(x)all(is.na(x))))

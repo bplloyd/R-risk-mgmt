@@ -1,45 +1,76 @@
 ---
-output: pdf_document
+output:
+  pdf_document:
+    keep_tex: yes
+  html_document: default
+  word_document: default
 ---
-#Long/Short Equity - Risk Contribution
 
 ```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
 source('loadUp.R')
 library(xtable)
+#GET DATA OBJECTS
+# subs = loadSubAdvisors()
+# subs.o = organizeSubs(subs)
+# ufts = loadUFTs()
+# pofs = loadPOFs()
+# inds = loadIndices()
+
+#SET OPTIONS
 options(xtable.comment = F)
-library(xts)
-library(PerformanceAnalytics)
-subs = loadSubAdvisors()
-ufts = loadUFTs()
-pofs = loadPOFs()
-#load(file = "hamfData2.RData")
+options(xtable.floating = F)
+options(xtable.timestamp = "")
+options(width = 100)
 
-testDate = '/20160208'
+# # TESTS
+# load(file = "hamfData2.RData")
+# testDate = '/20160217'
+# #GET VAR EXCEPTIONS - *****TESTDATE*****
+# sub.exceptions = lapply(lapply(subs.o, dailyExceptions, date = end(subs[testDate])), function(x)return(x*100))
+# pof.exceptions = dailyExceptions(pofs[testDate])*100
+# uft.exceptions = dailyExceptions(ufts[testDate])*100
 
-subs.o = organizeSubs(subs[paste(testDate)])
-subs.exceptions = lapply(subs.o, dailyExceptions)
-pofs.exceptions = dailyExceptions(pofs[paste(testDate)])
-ufts.exceptions = dailyExceptions(ufts[paste(testDate)])
-mstrat = pofs.exceptions[which(row.names(pofs.exceptions) %in% c("ALPHX", "ALPIX", "HHSIX")),]
-lse = rbind(pofs.exceptions[which(row.names(pofs.exceptions)=="HLSIX"),], ufts.exceptions[which(row.names(ufts.exceptions)=="LSE"),], subs.exceptions$LSE)
-lsd = rbind(pofs.exceptions[which(row.names(pofs.exceptions)=="HFINX"),], ufts.exceptions[which(row.names(ufts.exceptions)=="LSD"),], subs.exceptions$LSD)
-ed = rbind(ufts.exceptions[which(row.names(ufts.exceptions)=="ED"),], subs.exceptions$ED)
-mn = rbind(ufts.exceptions[which(row.names(ufts.exceptions)=="MN"),], subs.exceptions$MN)
-mf = rbind(pofs.exceptions[which(row.names(pofs.exceptions)=="HMFIX"),], ufts.exceptions[which(row.names(ufts.exceptions)=="MF"),], subs.exceptions$MF)
-exceptions = list(MULTISTRAT = mstrat, LSE=lse, LSD = lsd, ED = ed, MN = mn, MF = mf)
-names(exceptions) = c("MultiStrat", "Long/Short Equity", "Long/Short Debt", "Event Driven", "Market Neutral", "Managed Futures")
+#GET VAR EXCEPTIONS
+sub.exceptions = lapply(lapply(subs.o, dailyExceptions), function(x)return(x*100))
+pof.exceptions = dailyExceptions(pofs)*100
+uft.exceptions = dailyExceptions(ufts)*100
 
-attr(exceptions, "subheadings") = paste0("Daily 99% VaR Exceptions for ", names(exceptions))
-exceptions.xList = xtableList(exceptions)
+#ORGANIZE INTO DATAFRAME
+exceptions = organizeExceptions(pof.exceptions, uft.exceptions, sub.exceptions)
 ```
 
-```{r, echo=FALSE, message=F, results='asis'}
-print(exceptions)
+##Daily 99% VaR Exceptions
+### `r end(subs.o$LSE)`
+
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+#MAKE xtable objects
+exceptions.xList = xtableList(exceptions, align = 'rccc')
+
+large = function(x){
+    paste0('{\\Large{\\bfseries ', x, '}}')
+}
+italic = function(x){
+    paste0('{\\emph{ ', x, '}}')
+}
+bold = function(x){
+   paste0('{\\bfseries ', x, '}')
+}
+red = function(x){
+   paste0('{\\color{red} ', x, '}')
+}
+print.xtableList(exceptions.xList
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+#print.xtableList(test.xList)
 ```
 
-```{r, echo=FALSE, message=F, results='asis'}
-print.xtableList(exceptions.xList)
-```
+
 
 
 
