@@ -22,26 +22,24 @@ options(xtable.floating = F)
 options(xtable.timestamp = "")
 options(width = 100)
 
-# # TESTS
-# load(file = "hamfData2.RData")
-# testDate = '/20160217'
-# #GET VAR EXCEPTIONS - *****TESTDATE*****
-# sub.exceptions = lapply(lapply(subs.o, dailyExceptions, date = end(subs[testDate])), function(x)return(x*100))
-# pof.exceptions = dailyExceptions(pofs[testDate])*100
-# uft.exceptions = dailyExceptions(ufts[testDate])*100
+# TESTS
+load(file = "hamfData2.RData")
+testDate = '/20160208'
+#GET VAR EXCEPTIONS - *****TESTDATE*****
+sub.exceptions = lapply(lapply(subs.o, dailyExceptions, date = end(subs[testDate])), function(x)return(x*100))
+pof.exceptions = dailyExceptions(pofs[testDate])*100
+uft.exceptions = dailyExceptions(ufts[testDate])*100
 
-#GET VAR EXCEPTIONS
-sub.exceptions = lapply(lapply(subs.o, dailyExceptions), function(x)return(x*100))
-pof.exceptions = dailyExceptions(pofs)*100
-uft.exceptions = dailyExceptions(ufts)*100
-
-subs.levels.var =
+# #GET VAR EXCEPTIONS
+# sub.exceptions = lapply(lapply(subs.o, dailyExceptions), function(x)return(x*100))
+# pof.exceptions = dailyExceptions(pofs)*100
+# uft.exceptions = dailyExceptions(ufts)*100
 
 #ORGANIZE INTO DATAFRAME
 exceptions = organizeExceptions(pof.exceptions, uft.exceptions, sub.exceptions)
 ```
 
-##Daily 99% VaR Exceptions
+##Daily 99% Modified VaR Exceptions
 ### `r end(subs.o$LSE)`
 
 ```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}

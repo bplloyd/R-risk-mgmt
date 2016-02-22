@@ -4,6 +4,8 @@ compareLevels = function(x, reportDate = NULL,  FUN = "VaR", p = 0.99, width = 1
   if(is.null(reportDate))
     reportDate = end(x)
   
+  #FUN = match.fun(FUN)
+  
   x=na.omit(x)
   
   m = seq(reportDate, length =2, by = "-1 month")[2]

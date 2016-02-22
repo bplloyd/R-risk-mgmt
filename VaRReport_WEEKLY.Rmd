@@ -8,6 +8,11 @@ output:
 
 ```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
 source('loadUp.R')
+subs.w = apply.weekly(subs, Return.cumulative)
+subs.w.o = organizeSubs(subs.w)
+ufts.w = apply.weekly(ufts, Return.cumulative)
+pofs.w = apply.weekly(pofs, Return.cumulative)
+
 library(xtable)
 #GET DATA OBJECTS
 # subs = loadSubAdvisors()
@@ -31,17 +36,15 @@ options(width = 100)
 # uft.exceptions = dailyExceptions(ufts[testDate])*100
 
 #GET VAR EXCEPTIONS
-sub.exceptions = lapply(lapply(subs.o, dailyExceptions), function(x)return(x*100))
-pof.exceptions = dailyExceptions(pofs)*100
-uft.exceptions = dailyExceptions(ufts)*100
-
-subs.levels.var =
+sub.exceptions = lapply(lapply(subs.w.o, dailyExceptions, n = 26), function(x)return(x*100))
+pof.exceptions = dailyExceptions(pofs.w, n=26)*100
+uft.exceptions = dailyExceptions(ufts.w, n=26)*100
 
 #ORGANIZE INTO DATAFRAME
 exceptions = organizeExceptions(pof.exceptions, uft.exceptions, sub.exceptions)
 ```
 
-##Daily 99% VaR Exceptions
+##Weekly 99% VaR Exceptions
 ### `r end(subs.o$LSE)`
 
 ```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
