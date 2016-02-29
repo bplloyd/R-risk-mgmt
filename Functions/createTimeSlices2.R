@@ -12,14 +12,16 @@ createTimeSlices2 = function(data, initialWindow = 126, fixedWindow = TRUE, on =
   slices = lapply(mapply(seq, starts, stops, SIMPLIFY = FALSE), function(x)return(index(data)[x]))
   names(slices) = index(data[initialWindow:nrow(data),])
   
-#   thin <- function(x, skip = 2){
-#     n <- length(x)
-#     x[seq(1, n, by = skip)]
-#   }
-#   if (skip > 0){
-#     slices <- thin(slices, skip = skip + 1)
-#   }
+  thin <- function(x, skip = 2){
+    n <- length(x)
+    x[seq(1, n, by = skip)]
+  }
+  
 
   epoints = as.character.Date(index(data)[endpoints(data, on = on)])
-  return(slices[which(names(slices) %in% epoints)])
+  slices = slices[which(names(slices) %in% epoints)]
+  if (skip > 0){
+    slices <- thin(slices, skip = skip + 1)
+  }
+  return(slices)
 }

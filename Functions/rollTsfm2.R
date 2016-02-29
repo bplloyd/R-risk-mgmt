@@ -1,7 +1,10 @@
-rollTsfm2 = function(assets, factors, fit.method = "LS", variable.selection = "none", window = 126, on = "days"){
+rollTsfm2 = function(assets, factors, fit.method = "LS", variable.selection = "none", window = 126, on = "days", includeMisc = F){
   require(factorAnalytics)
   require(fPortfolio)
   require(xts)
+  if(!includeMisc)
+      assets = assets[,-grep("Misc", names(assets))]
+  
   assets = assets[which(rowSums(is.na(assets)) < ncol(assets)),]
   merged = merge.xts(assets, factors[index(assets),])
   slices = createTimeSlices2(merged, initialWindow = window, fixedWindow = T, on = on)
