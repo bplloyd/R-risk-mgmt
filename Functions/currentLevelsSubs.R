@@ -1,4 +1,4 @@
-currentLevelsSubs = function(subs.o, FUN = "VaR", p=0.99, width = 126, method = "modified", omissions = NULL, reportDate = NULL)
+currentLevelsSubs = function(subs.o, FUN = "VaR", p=0.98, width = 126, method = "modified", omissions = NULL, reportDate = NULL)
 {
   if(is.null(reportDate)){reportDate = end(subs.o$LSE)}
 

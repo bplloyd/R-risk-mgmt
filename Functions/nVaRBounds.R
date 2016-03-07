@@ -1,4 +1,4 @@
-nVaRBounds = function(x, p = 0.99, n = 126){
+nVaRBounds = function(x, p = 0.98, n = 126){
   require(xts)
   boundDate = end(x)
   upperBound = xts(nVaR(x, p=1-p, n=n), order.by = boundDate)

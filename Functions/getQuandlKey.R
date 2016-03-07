@@ -1,0 +1,1 @@
+getQuandlKey = function(){return("gEzLwhacDG4Uhgv9ZQ9j")}

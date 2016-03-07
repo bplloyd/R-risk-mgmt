@@ -5,8 +5,18 @@ getSpReturns = function(inds, startDate = NULL, endDate = NULL){
       startDate = start(inds)
   if(is.null(endDate))
       endDate = end(inds)
-  sp = inds[,grep("SPTR", names(inds))]
-  sp = sp[-which(apply(sp, 1, function(x)all(is.na(x)))),]
+  sp = inds[,"SPTR"]
+  sp = na.omit(sp)
   sp=CalculateReturns(sp)
-  return(sp[paste(startDate,endDate,sep = "/"),])
+  return(na.omit(sp[paste(startDate,endDate,sep = "/"),]))
+}
+
+getSpReturns2 = function(){
+  require(xts)
+  require(PerformanceAnalytics)
+  require(quantmod)
+  getSymbols('^SP500TR')
+  sp = CalculateReturns(Ad(SP500TR))
+  names(sp)[1] = "SPTR"
+  return(sp)
 }

@@ -1,4 +1,4 @@
-nVaR = function(x, p = 0.99, n = NULL){
+nVaR = function(x, p = 0.98, n = NULL){
   x = na.omit(x)
   if (!is.null(n)){
       nr = nrow(x)

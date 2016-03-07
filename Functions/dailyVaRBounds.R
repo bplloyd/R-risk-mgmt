@@ -1,4 +1,4 @@
-dailyVaRBounds = function(accounts, date=NULL, p = 0.99, n = 126,  method = "modified"){
+dailyVaRBounds = function(accounts, date=NULL, p = 0.98, n = 126,  method = "modified"){
   require(PerformanceAnalytics)
  
   if(method == "modified")

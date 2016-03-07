@@ -1,6 +1,6 @@
 #RETURNS DAILY VAR EXCEPTIONS
 
-dailyExceptions = function(accounts, date = NULL, p = 0.99, n = 126, method = "modified"){
+dailyExceptions = function(accounts, date = NULL, p = 0.98, n = 126, method = "modified"){
   require(xts)
   if(is.null(date))
       date = end(accounts)
