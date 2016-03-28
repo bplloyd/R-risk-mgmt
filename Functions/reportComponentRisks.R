@@ -2,25 +2,27 @@ reportComponentRisks = function(subs.o, subs.weights, n = 126)
 {
   comp.sd = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "StdDev", n = n))
   comp.sd.p = lapply(comp.sd, function(x){result = data.frame(x[3,]*100); colnames(result)[1] = "StdDev"; return(result)})
-  total.sd = lapply(comp.sd, FUN = function(x){temp = data.frame(x[1,1]*100);   colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total"; return(temp)})
+  total.sd = lapply(comp.sd, FUN = function(x){temp = data.frame(100*x[1,1]);   colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total"; return(temp)})
   
   comp.VaR = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "VaR", n = n))
   comp.VaR.p = lapply(comp.VaR, function(x){result = data.frame(x[3,]*100); colnames(result)[1] = "MVaR"; return(result)})
-  total.VaR = lapply(comp.VaR, FUN = function(x){temp = data.frame(x[1,1]*100);   colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total"; return(temp)})
+  total.VaR = lapply(comp.VaR, FUN = function(x){temp = data.frame(-100*x[1,1]);   colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total"; return(temp)})
  
   comp.ES = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "ES", n = n))
   comp.ES.p = lapply(comp.ES, function(x){result = data.frame(x[3,]*100); colnames(result)[1] = "MES"; return(result)})
-  total.ES = lapply(comp.ES, FUN = function(x){temp = data.frame(x[1,1]*100);  colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total";return(temp)})
+  total.ES = lapply(comp.ES, FUN = function(x){temp = data.frame(-100*x[1,1]);  colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total";return(temp)})
   
   comp.p = comp.ES.p
   total.p = total.ES
+  actWeights = subs.weights[names(comp.p)]
+  
   
   for (i in 1:length(comp.p))
   {
-    comp.p[[i]] = cbind.data.frame(comp.p[[i]], comp.VaR.p[[i]], comp.sd.p[[i]])
+    comp.p[[i]] = cbind.data.frame(comp.p[[i]], comp.VaR.p[[i]], comp.sd.p[[i]], ActualWeights = actWeights[[i]]*100)
     comp.p[[i]] = comp.p[[i]][with(comp.p[[i]], order(-MES, -MVaR, -StdDev)),]
     
-    total.p[[i]] = cbind.data.frame(total.p[[i]], total.VaR[[i]], total.sd[[i]])
+    total.p[[i]] = cbind.data.frame(total.p[[i]], total.VaR[[i]], total.sd[[i]], ActualWeights = c(100))
     row.names(total.p[[i]])[1] = paste0(row.names(total.p[[i]])[1], names(comp.p)[i])
   }
   combined = vector(mode = "list", length = 10)

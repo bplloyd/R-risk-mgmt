@@ -3,7 +3,12 @@ factorRoll = function(assets, factors, fit.method = "LS", variable.selection = "
     rollFit = rollTsfm2(assets, factors, fit.method = fit.method, variable.selection = variable.selection, window =  window, on = on, includeMisc = includeMisc)
     rollFit.coef = lapply(rollFit, function(x)return(coef(x)))
     
-    factorRoll = array(data = NA, dim = c(length(rollFit.coef), 10, 5), dimnames = c(names(rollFit.coef), col.names(rollFit.coef[[length(rollFit.coef)]]), row.names(lse.factors.coef[[length(rollFit.coef)]])))
+    factorRoll = array(data = NA, dim = c(length(rollFit), ncol(factors)+1, ncol(assets)), dimnames = list(names(rollFit), c("intercept",names(factors)), names(assets)))
+    for(i in 1:ncol(assets)){
+      factorRoll[,,i] = as.matrix(na.fill(extractSingleBetaroll(rollFit, names(assets)[i]), fill = 0))
+    }
+    return(factorRoll)
+    
 }
 
   

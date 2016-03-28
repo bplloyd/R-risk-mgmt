@@ -1,0 +1,276 @@
+---
+output:
+  pdf_document:
+    keep_tex: yes
+  html_document: default
+  word_document: default
+---
+
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+
+library(xtable)
+#SET OPTIONS
+options(xtable.comment = F)
+options(xtable.floating = F)
+options(xtable.timestamp = "")
+options(width = 100)
+# PERIODICITY REPORT OPTION
+n = 126
+p = 0.98
+
+
+# ## ----------------------------------------------TESTS------------------------------------------------------
+# load(file = "hamfData2.RData")
+# testDate = '/20160217'
+# sub.exceptions = lapply(lapply(subs.o, dailyExceptions, date = end(subs[testDate])), function(x)return(x*100))
+# pof.exceptions = dailyExceptions(pofs[testDate])*100
+# uft.exceptions = dailyExceptions(ufts[testDate])*100
+
+
+
+
+# ------------------------REGULAR (NOT TESTS)------------------------------------------------------
+source('loadUp.R')
+reportDate = end(subs.o$LSE)
+m = seq(reportDate, length = 2, by = "-1 month")[2]
+m = end(as.xts(index(ufts)[which(index(ufts)<=m)])) 
+
+q = seq(reportDate, length = 2, by = "-1 quarter")[2]
+q = end(as.xts(index(ufts)[which(index(ufts)<=q)])) 
+
+y = seq(reportDate, length = 2, by = "-1 year")[2]
+y = end(as.xts(index(ufts)[which(index(ufts)<=y)]))
+
+dates = c(reportDate, m,q, y)
+
+#GET VAR EXCEPTIONS
+sub.exceptions.98 = lapply(lapply(subs.o,FUN = function(y)return(dailyExceptions(y, n = n))), function(x)return(x*100))
+pof.exceptions.98 = dailyExceptions(pofs, n = n)*100
+uft.exceptions.98 = dailyExceptions(ufts, n = n)*100
+mkt.exceptions.98 = dailyExceptions(mkt, n = n)*100
+
+#Component Risks
+
+compRisks = reportComponentRisks(subs.o, subs.weights, n = n)  
+
+#RISK LEVELS
+
+sub.levels.var = lapply(currentLevelsSubs(subs.o, FUN = "VaR", width = n, omissions = c("MiscLSE", "MiscLSD", "MiscED", "MiscMF", "MiscMN")), function(l)return(l*100))
+
+sub.levels.es = lapply(currentLevelsSubs(subs.o, FUN = "ES", width = n, omissions = c("MiscLSE", "MiscLSD", "MiscED", "MiscMF", "MiscMN")), function(l)return(l*100))
+
+uft.levels.weighted.es = currentLevelsFunds2(funds = ufts, FUN = "ES", p = 0.98, width = n, model = "weights", subs.o = subs.o, weights = subs.weights, mode = "change")*100
+
+# uft.levels.weighted.var = currentLevelsFunds(funds = ufts, FUN = "VaR", p = 0.98, width = n, model = "weights", subs.o = subs.o, weights = subs.weights)*100
+
+uft.levels.var = currentLevelsFunds(ufts, FUN = "VaR", width = n)*100
+uft.levels.es = currentLevelsFunds(ufts, FUN = "ES", width = n)*100
+
+pof.levels.var = currentLevelsFunds(pofs, FUN = "VaR", width = n)*100
+pof.levels.es = currentLevelsFunds(pofs, FUN = "ES", width = n)*100
+
+mkt.levels.var = currentLevelsFunds(mkt, FUN = "VaR", width = n)*100
+mkt.levels.es = currentLevelsFunds(mkt, FUN = "ES", width = n)*100
+
+#Avg cor
+cor.list = reportCorrelation(subs.o = subs.o, bm = sp$SPTR, dates = dates, width = n)
+
+#ORGANIZE INTO DATAFRAMES
+exceptions.98 = organizeExceptions(pof.exceptions.98, uft.exceptions.98, sub.exceptions.98, mkt.exceptions.98)
+
+levels.es = organizeLevels(pof.levels.es, uft.levels.es, sub.levels.es, mkt.levels.es)
+levels.var = organizeLevels(pof.levels.var, uft.levels.var, sub.levels.var, mkt.levels.var)
+
+
+#MAKE xtable objects
+exceptions.98.xList = xtableList(exceptions.98, align = 'rccc')
+cor.xList = xtableList(cor.list, align = 'lcccc')
+compRisks.xList = xtableList(compRisks, align = 'rccc|c')
+
+levels.weighted.es.xtable = xtable(uft.levels.weighted.es, align = 'rcccc')
+#levels.weighted.var.xtable = xtable(uft.levels.weighted.var, align = 'rcccc')
+
+levels.es.xlist = xtableList(levels.es, align = 'rcccc')
+levels.var.xlist = xtableList(levels.var, align = 'rcccc')
+
+large = function(x){
+    paste0('{\\Large{\\bfseries ', x, '}}')
+}
+italic = function(x){
+    paste0('{\\emph{ ', x, '}}')
+}
+bold = function(x){
+   paste0('{\\bfseries ', x, '}')
+}
+red = function(x){
+   paste0('{\\color{red} ', x, '}')
+}
+
+#print.xtableList(test.xList)
+```
+
+#Daily Risk Report
+### `r reportDate`
+##98% VaR Exceptions
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtableList(exceptions.98.xList, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+
+
+```
+
+
+
+
+##Risk Levels At Current Allocations (excluding misc accts)
+###Change in Risk Levels
+###1. Change in Expected Tail Loss (ES)
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtable(levels.weighted.es.xtable, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis', fig.width=8, fig.height=3}
+l= levelsForBarPlot(currentLevelsFunds2(funds = ufts, FUN = "ES", p = 0.98, width = n, model = "weights", subs.o = subs.o, weights = subs.weights, mode = "levels")*100)
+
+library(ggplot2)
+p = ggplot(l, aes(x=Date, y=ExpectedTailLoss, fill = Date))
+p = p + geom_bar(position = "dodge", colour = "black", stat = "identity", width = 0.75)
+p = p + facet_grid(. ~ fund)
+p = p + scale_fill_brewer(palette = 6)
+p = p + theme_bw()
+p = p + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.y = element_blank(), legend.position = "bottom")
+p = p + guides(fill = guide_legend(title = NULL))
+
+#p = p + theme(axis.text.x = element_text(angle = 35, hjust = 1, vjust = 1))
+#p = p + facet_grid(fund ~ .)
+p
+
+```
+
+\pagebreak
+
+###2. Percent Contribution to Risk
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtableList(compRisks.xList, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+```
+
+\pagebreak
+
+##Average Correlations
+> *Average correlation of current subadvisors to the S&P 500 over previous 26 weeks*
+> *Average correlation between subadvisors over previous 26 weeks*
+
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtableList(cor.xList, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+
+lse.cor.sp = rollAvgCorToBM(subs.o$LSE, sp$SPTR, width = n)
+lsd.cor.sp = rollAvgCorToBM(subs.o$LSD, sp$SPTR, width = n)
+mn.cor.sp = rollAvgCorToBM(subs.o$MN, sp$SPTR, width = n)
+mf.cor.sp = rollAvgCorToBM(subs.o$MF, sp$SPTR, width = n)
+avg.cor.sp = cbind(lse.cor.sp, lsd.cor.sp, mf.cor.sp, mn.cor.sp)
+names(avg.cor.sp)[1:4] = paste0(c("LSE", "LSD", "MF", "MN"), rep("AvgCor", 4))
+
+avgCor.list = lapply(subs.o, FUN = function(x)return(extractAvgCorrelation(rollingCorrelationMatrix(x, window = n))))
+avgCor = avgCor.list[[1]]
+for (i in 2:length(avgCor.list))
+{
+    avgCor = cbind(avgCor, avgCor.list[[i]])
+}
+colnames(avgCor) = names(avgCor.list)
+
+require(ggplot2)
+require(data.table)
+data = avg.cor.sp
+dt = data.table(data.frame(Date = as.Date(index(data)), LSE = data[,1], LSD = data[,2], MF = data[,3], MN = data[,4], row.names = NULL))
+dt.m = melt(dt, 'Date')
+names(dt.m)[2:3] = c("Legend", "AverageCorrelation")
+p = ggplot(dt.m,aes(x=Date,y=AverageCorrelation,group=Legend,color=Legend)) + geom_line() + scale_x_date()
+#p = p + theme_minimal()
+p = p + theme_bw()
+p = p + ggtitle("Avg Correlation to S&P 500")
+p
+
+data = avgCor
+dt = data.table(data.frame(Date = as.Date(index(data)), ED = data[,1], LSE = data[,2], LSD = data[,3], MF = data[,4], MN = data[,5], row.names = NULL))
+dt.m = melt(dt, 'Date')
+names(dt.m)[2:3] = c("Legend", "AverageCorrelation")
+p = ggplot(dt.m,aes(x=Date,y=AverageCorrelation,group=Legend,color=Legend)) + geom_line() + scale_x_date()
+#p = p + theme_minimal()
+p = p + theme_bw()
+p = p + ggtitle("Avg Correlation Between SubAdvisors in Strategy")
+p
+
+```
+
+##Daily Modified VaR Levels
+### `r reportDate`
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtableList(levels.var.xlist, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+```
+\pagebreak
+
+##Daily 98% Expected Shortfall (Modified Conditional VaR) Levels
+### `r reportDate`
+
+
+
+> *Expected shortfall is the average expected loss beyond the VaR level, i.e. how much you expect to actually lose when the VaR level is breached.*
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=F, results='asis'}
+print.xtableList(levels.es.xlist, floating = T
+                 #, colnames.format = "multiple"
+                 , sanitize.subheadings.function = italic
+                 , sanitize.colnames.function = bold
+                 #, sanitize.numbers()
+                 , sanitize.rownames.function = bold
+                 #, booktabs = T
+                 #, table.placement = "Ht"
+                 )
+```
+
+
+

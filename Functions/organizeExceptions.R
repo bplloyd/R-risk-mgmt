@@ -1,4 +1,4 @@
-organizeExceptions = function(pof.exceptions, uft.exceptions, sub.exceptions)
+organizeExceptions = function(pof.exceptions, uft.exceptions, sub.exceptions, mkt.exceptions)
 {
 #   pof.exceptions = pofs.exceptions
 #   uft.exceptions = ufts.exceptions
@@ -11,8 +11,8 @@ organizeExceptions = function(pof.exceptions, uft.exceptions, sub.exceptions)
   mn = rbind(uft.exceptions[which(row.names(uft.exceptions)=="MN"),],sub.exceptions$MN[which(row.names(sub.exceptions$MN)!="MiscMN"),])
   mf = rbind(pof.exceptions[which(row.names(pof.exceptions)=="HMFIX"),], uft.exceptions[which(row.names(uft.exceptions)=="MF"),], sub.exceptions$MF[which(row.names(sub.exceptions$MF)!="MiscMF"),])
   
-  exceptions = list(MULTISTRAT = mstrat, LSE=lse, LSD = lsd, ED = ed, MN = mn, MF = mf)
-  names(exceptions) = c("MultiStrat", "Long/Short Equity", "Long/Short Debt", "Event Driven", "Market Neutral", "Managed Futures")
+  exceptions = list(MULTISTRAT = mstrat, LSE=lse, LSD = lsd, ED = ed, MN = mn, MF = mf, MARKET = mkt.exceptions)
+  names(exceptions) = c("MultiStrat", "Long/Short Equity", "Long/Short Debt", "Event Driven", "Market Neutral", "Managed Futures", "Market")
   #exceptions = exceptions[lapply(exceptions, function(x)return(nrow(x)))>0]
   attr(exceptions, "subheadings") = paste(names(exceptions), "VaR Exceptions", sep = " ")
   return(exceptions)

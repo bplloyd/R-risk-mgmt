@@ -2,7 +2,7 @@ rollTsfm2 = function(assets, factors, fit.method = "LS", variable.selection = "n
   require(factorAnalytics)
   require(fPortfolio)
   require(xts)
-  if(!includeMisc)
+  if((!includeMisc) & (length(grep("Misc", names(assets))>0)>0))
       assets = assets[,-grep("Misc", names(assets))]
   
   assets = assets[which(rowSums(is.na(assets)) < ncol(assets)),]

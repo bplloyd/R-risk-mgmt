@@ -1,4 +1,4 @@
-compareLevels = function(x, reportDate = NULL,  FUN = "VaR", p = 0.98, width = 126, method = "modified")
+compareLevels = function(x, reportDate = NULL,  FUN = "VaR", p = 0.98, width = 126, method = "modified", mode = "percent")
 {
   require(xts)
   require(PerformanceAnalytics)
@@ -29,30 +29,38 @@ compareLevels = function(x, reportDate = NULL,  FUN = "VaR", p = 0.98, width = 1
   y = seq(reportDate, length =2, by = "-1 year")[2]
   
 #   if((reportDate %in% index(x)) & (nrow(x) >= width))
-       thisDate = func(x[paste("/",reportDate, sep = ""),])
+       thisDate = abs(func(x[paste("/",reportDate, sep = ""),]))
 #   else 
 #       thisDate = NA
 #   
 #   if(m >= start(x))
-       lastMonth = func(x[paste("/",m, sep = ""),])
+       lastMonth = abs(func(x[paste("/",m, sep = ""),]))
 #   else
 #       lastMonth = NA
 #   
 #   if(q  >= start(x))
-      lastQuarter = func(x[paste("/",q, sep = ""),])
+      lastQuarter = abs(func(x[paste("/",q, sep = ""),]))
 #   else
 #     lastQuarter = NA
 #   
 #   if(y  >= start(x))
-       lastYear = func(x[paste("/",y, sep = ""),])
+       lastYear = abs(func(x[paste("/",y, sep = ""),]))
 #   else
 #       lastYear = NA
   
   
   #result = data.frame(paste(thisDate, "%", sep = ""), paste(100*(thisDate - lastMonth)/abs(lastMonth), "%", sep = ""), paste(100*(thisDate - lastQuarter)/abs(lastQuarter), "%", sep = ""), paste(100*(thisDate - lastYear)/abs(lastYear), "%", sep = ""))
   #result = data.frame(thisDate, 100*(thisDate - lastMonth)/abs(lastMonth), 100*(thisDate - lastQuarter)/abs(lastQuarter), 100*(thisDate - lastYear)/abs(lastYear))
-  result = data.frame(thisDate, thisDate - lastMonth, thisDate - lastQuarter, thisDate - lastYear)
-  names(result) = c(paste(FUN,as.character.Date(reportDate), sep = " "),"M/O/M/ change", "Q/O/Q change", "Y/O/Y change")
+  if (mode == "percent")
+  {
+      result = data.frame(thisDate, (thisDate - lastMonth)/lastMonth, (thisDate - lastQuarter)/lastQuarter, (thisDate - lastYear)/lastYear)
+      names(result) = c(paste(FUN, as.character.Date(reportDate), sep = " "),"M/O/M change", "Q/O/Q change", "Y/O/Y change")
+  }
+  else 
+  {
+      result = data.frame(thisDate, thisDate - lastMonth, thisDate - lastQuarter, thisDate - lastYear)
+      names(result) = c(paste(FUN, as.character.Date(reportDate), sep = " "),"M/O/M change", "Q/O/Q  change", "Y/O/Y change")
+  }
   rownames(result) = paste(FUN, paste(p,"%", sep = ""), sep = " ")
   return(result)
 }
