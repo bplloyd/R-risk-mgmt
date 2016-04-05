@@ -1,0 +1,10 @@
+l= levelsForBarPlot(v)
+library(ggplot2)
+p = ggplot(l, aes(x=Date, y=value, fill = Date))
+p = p + geom_bar(position = "dodge", colour = "black", stat = "identity", width = 0.75)
+p = p + facet_grid(. ~ fund)
+p = p + scale_fill_brewer(palette = 6)
+p = p + theme_bw()
+p = p + theme(axis.text.x = element_text(angle = 35, hjust = 1, vjust = 1))
+#p = p + facet_grid(fund ~ .)
+p

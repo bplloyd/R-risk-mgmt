@@ -1,8 +1,8 @@
-rollingExposure = function(sub)
+getExposure = function(id)
 {
-  proc = "usp_Rolling_LSNetGross"
-  param = paste("@sub", sub, sep = " = ")
-  result = executeSP(proc, param)
+  proc = "usp_Get_Exposure"
+  param = paste("@id", id, sep = " = ")
+  result = executeSP(proc, param, schema = "HAMF")
   #return(result)
-  return(xts(result[,2:5], order.by = as.Date.character(result[,1])))
+  return(xts(result[,2:ncol(result)], order.by = as.Date.character(result[,1])))
 }

@@ -1,4 +1,4 @@
-currentLevelsFunds2 = function(funds, FUN = "VaR", p=0.98, width = 126, method = "modified", model = "historical", weights = NULL, subs.o=NULL, mode = "percent")
+currentLevelsFunds2 = function(funds, FUN = "VaR", p=0.98, width = 126, method = "modified", model = "historical", weights = NULL, subs.o=NULL, mode = "change")
 {
   if(model == "weights")
   {

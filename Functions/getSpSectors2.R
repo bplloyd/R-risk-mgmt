@@ -10,8 +10,5 @@ getSpSectors2 = function(){
   res = Quandl(code = secs, type = "xts")
   res = res[, c(1,3,5,7,9,11,13,15,17,19)]
   names(res) = secs
-  res = CalculateReturns(res)[-1,]
-  
-  
-  
+  return(CalculateReturns(res)[-1,])
 }

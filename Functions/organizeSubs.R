@@ -1,13 +1,16 @@
-organizeSubs = function(subs=NULL, curMgrs = T){
+organizeSubs = function(subs=NULL, curMgrs = T, allocations = NULL){
   if(is.null(subs))
       subs = loadSubAdvisors()
   if(curMgrs)
   {
-    cols.lse = which(names(subs) %in% c('Apis', 'BlueJay', 'BoardmanBay', 'Coe', 'ISF', 'MiscLSE'))
-    cols.mn = which(names(subs) %in% c('Jadwin', 'Longbow', 'MiscMN'))
-    cols.ed = which(names(subs) %in% c('FrontFour','Havens', 'MiscED'))
-    cols.lsd = which(names(subs) %in% c(' MatlinPatterson',  'MiscLSD', 'SmithBreeden', 'Soundpoint'))
-    cols.mf = which(names(subs) %in% c('MiscMF','Revolution', 'Row'))
+      if(is.null(allocations))
+          allocations = getAllocations(end(subs))
+      
+      cols.lse = which(names(subs) %in% allocations$LSE$Name)
+      cols.mn = which(names(subs) %in% allocations$MN$Name)
+      cols.ed = which(names(subs) %in% allocations$ED$Name)
+      cols.lsd = which(names(subs) %in% allocations$LSD$Name)
+      cols.mf = which(names(subs) %in% allocations$MF$Name)
   }
   if(!curMgrs)
   {

@@ -1,7 +1,7 @@
 plotExposure = function(id, label)
 {
-    id = 786
-    label = "Alpha"
+    id = 58
+    label = "Coe"
     library(ggplot2)
     exp = sectorExposure(id, on = "weeks")
     dt = melt(data.table(data.frame(Date = as.Date(index(exp)), na.fill(exp, fill = 0 ), row.names = NULL)), 'Date')
@@ -44,9 +44,9 @@ plotExposure = function(id, label)
     facet.def = facet.def + ggtitle(paste(label, "Defensive Sector Exposures", sep = " "))
   
     
-    area.cyc
+    # area.cyc
     facet.cyc
-    area.def
+    # area.def
     facet.def
-    area.all
+    # area.all
 }

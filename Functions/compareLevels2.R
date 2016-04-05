@@ -1,4 +1,4 @@
-compareLevels2 = function(x, reportDate = NULL,  FUN = "VaR", p = 0.98, width = 126, method = "modified", mode = "percent")
+compareLevels2 = function(x, reportDate = NULL,  FUN = "VaR", p = 0.98, width = 126, method = "modified", mode = "change")
 {
   require(xts)
   require(PerformanceAnalytics)
