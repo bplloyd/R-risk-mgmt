@@ -1,7 +1,7 @@
 plotExposure = function(id, label)
 {
-    id = 58
-    label = "Coe"
+    id = 59
+    label = "ISF"
     library(ggplot2)
     exp = sectorExposure(id, on = "weeks")
     dt = melt(data.table(data.frame(Date = as.Date(index(exp)), na.fill(exp, fill = 0 ), row.names = NULL)), 'Date')
