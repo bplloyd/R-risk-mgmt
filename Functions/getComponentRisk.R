@@ -1,4 +1,4 @@
-getComponentRisk = function(subs.o, subs.weights, p = 0.98, FUN = "VaR",  n = 126, reportDate = NULL, na.rm = T, method = NULL)
+getComponentRisk = function(subs.o, subs.weights, p = 0.99, FUN = "VaR",  n = 63, reportDate = NULL, na.rm = T, method = NULL)
 {
     require(PerformanceAnalytics)
     require(xts)

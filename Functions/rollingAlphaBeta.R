@@ -1,5 +1,6 @@
 rollingAlphaBeta = function(Ra, Rb, width = 63)
 {
+  source('Functions/rollFit.R')
   require(xts)
   require(PerformanceAnalytics)
   fit = rollFit(na.omit(cbind(Ra, Rb[,1])), formula = paste(names(Ra), names(Rb[,1]), sep = " ~ "), width = width)

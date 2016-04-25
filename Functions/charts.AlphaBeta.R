@@ -1,10 +1,10 @@
 charts.AlphaBeta = function (Ra, Rb, width = 63, Rf = 0, main = NULL, legend.loc = NULL, 
-          event.labels = NULL, alphaRng = c(-1,1), betaRng = c(-1,1), colorset = rich10equal, ...) 
+          event.labels = NULL, alphaRng = c(-1,1), betaRng = c(-1,1), colorset = rich10equal, annualize = T,  ...) 
 {
   columns.a = ncol(Ra)
   columns.b = ncol(Rb)
   op <- par(no.readonly = TRUE)
-  layout(matrix(c(1, 2)), widths = 1, heights = c(1,1))
+  layout(matrix(c(1, 2, 3)), widths = 1, heights = c(1,1))
   par(mar = c(1, 4, 2, 2))
   if (is.null(main)) {
     freq = periodicity(Ra)

@@ -1,4 +1,4 @@
-RollingCorrelation = function (Ra, Rb, width = 126, fill = NA) 
+rollingCorrelation = function (Ra, Rb, width = 126, fill = NA) 
 {
   Ra = checkData(Ra)
   Rb = checkData(Rb)

@@ -1,10 +1,13 @@
-reportComponentRisks = function(subs.o, subs.weights, n = 126, method = "gaussian")
+reportComponentRisks = function(subs.o, subs.weights, n = 63, p=0.99, method = "gaussian", reportDate = NULL)
 {
+  if(!is.null(reportDate)){
+    subs.o = lapply(subs.o, FUN = function(x)return(x[paste0("/", reportDate),]))
+  }
   comp.sd = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "StdDev", n = n))
   comp.sd.p = lapply(comp.sd, function(x){result = data.frame(x[3,]*100); colnames(result)[1] = "StdDev"; return(result)})
   total.sd = lapply(comp.sd, FUN = function(x){temp = data.frame(100*x[1,1]);   colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total"; return(temp)})
   
-  comp.VaR = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "VaR", n = n, method = method))
+  comp.VaR = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "VaR", n = n, p=p, method = method))
   colName = switch (method,
     gaussian = "VaR",
     modified = "MVaR"
@@ -16,7 +19,7 @@ reportComponentRisks = function(subs.o, subs.weights, n = 126, method = "gaussia
                     gaussian = "ES",
                     modified = "MES"
   )
-  comp.ES = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "ES", n = n, method = method))
+  comp.ES = organizeComponentRisks(getComponentRisk(subs.o, subs.weights, FUN = "ES", n = n, p=p, method = method))
   comp.ES.p = lapply(comp.ES, function(x){result = data.frame(x[3,]*100); colnames(result)[1] = colName; return(result)})
   total.ES = lapply(comp.ES, FUN = function(x){temp = data.frame(-100*x[1,1]);  colnames(temp)[1] = row.names(x)[1]; rownames(temp)[1] = "Total";return(temp)})
   

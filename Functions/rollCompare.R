@@ -1,8 +1,8 @@
 rollCompare = function(x, bm, width=126, FUNC)
 {
-    x=na.omit(subs$Apis)
-    bm = cbind(sp, ed)
-    FUNC = "ActivePremium"
+    #x=na.omit(subs$Apis)
+    #bm = cbind(sp, ed)
+    #FUNC = "ActivePremium"
     FUNC = match.fun(FUNC)
     width = 126
     library(xts)
