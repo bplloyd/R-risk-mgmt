@@ -1,22 +1,29 @@
-riskStats_sub = function(sub, bms, width = 63, exportToExcel = T)
+riskStats_sub = function(sub, bms, width = 63, irWidth = 126, exportToExcel = T)
 {
     require(xts)
     require(PerformanceAnalytics)
     require(timeSeries)
     require(XLConnect)
+    require(stringr)
     source('Functions/loadMyFuncs.R')
     loadMyFuncs()
     
 #      width = 63
-#      name = "FrontFour"
+#      irWidth =126
+#      name = "Coe"
 #      sub = subs[,name]
-#      bms = cbind(sp2, hfrx$HFRXED) 
+#      bms = cbind(sp2, hfrx$HFRXEH) 
      
     sub = na.omit(sub)  
     nm = names(sub)[1]
     id = getSubID(nm)
     fundId = getFundID(nm)
     lam = switch(as.character(fundId), '785' = 0.94, '784' = 0.91, '783' = 0.92, '782' = 0.95, '777' = 0.98)
+    
+    sub.cbd_Sector = contributionBreakdown(id, "Sector", start = start(sub), end = end(sub))
+    sub.cbd_MktCap = contributionBreakdown(id, "Mkt_Cap", start = start(sub), end = end(sub))
+    sub.ewma_volcontrib_Sector = ewmaVolatilityContribution(sub.cbd_Sector)
+    sub.ewma_volcontrib_MktCap = ewmaVolatilityContribution(sub.cbd_MktCap)
     
     sub.bar = sub
     names(sub.bar) = "Daily Return"
@@ -35,8 +42,12 @@ riskStats_sub = function(sub, bms, width = 63, exportToExcel = T)
     names(sub.es) = "ETL"
     sub.VaR = apply.rolling(sub, width = width, FUN = function(R)return(VaR(R, p = 0.99, method = "gaussian")))
     names(sub.VaR) = "VaR"
-    sub.ir = rollingInformationRatio(sub, bms, width = width)
-    index(sub.ir) = as.Date(index(sub.ir))
+    sub.ir1 = rollGeomIR(sub, bms[,1], width = irWidth)
+    #index(sub.ir1) = index(sub[paste(start(sub.ir1), end(sub.ir1), sep = "/")])
+    sub.ir2 = rollGeomIR(sub, bms[,2], width = irWidth)
+    sub.ir = cbind(sub.ir1, sub.ir2)
+    index(sub.ir) = index(sub[paste(start(sub.ir), end(sub.ir), sep = "/")])
+    #index(sub.ir1) = as.Date(index(sub.ir))
     sub.cor = rollingCorrelation(sub, bms, width = width)
     sub.ewma = sqrt(ewmaCovariance(sub, lambda = lam)*Frequency(sub))
     names(sub.ewma) = "EWMA Volatility"
@@ -52,7 +63,9 @@ riskStats_sub = function(sub, bms, width = 63, exportToExcel = T)
     if((id != 33) & (id != 34) & (id != 105) & (id != 106))
     {
       sub.exp = rollingExposure(id)
-      hist =  as.data.frame(cbind
+      sub.sectExp = sectorExposure(id, on = "days")
+      hist =  as.data.frame(
+        cbind
                               (
                                   sub.bar
                                   , sub.cum
@@ -67,8 +80,10 @@ riskStats_sub = function(sub, bms, width = 63, exportToExcel = T)
                                   , sub.cpts.var
                                   , sub.cpts.meanVar
                                   , sub.ewma
-                                  , sectorExposure(id, on = "days")
+                                  , sub.sectExp
                                   , sub.exp
+                                  , sub.ewma_volcontrib_Sector
+                                  , sub.ewma_volcontrib_MktCap
                                 )
                             )
       sub.tp = executeSP(procname = "usp_Top_Position_Sub", paramstring = paste0("@id = ", id))
@@ -103,20 +118,20 @@ riskStats_sub = function(sub, bms, width = 63, exportToExcel = T)
                               )
                             )
     }
-    
-#     exportXTS(data = data,
-#               filename = paste0("RISKSTATS_", name,  ".xlsx"),
-#               sheet = paste0("RISKSTATS_", name)
-#               )
     if(exportToExcel)
     {
-        df = data.frame(Date = row.names(hist), hist, row.names = NULL)
-        writeWorksheetToFile(
-                              file = paste0("RISKSTATS_", nm,  ".xlsx")
-                              , sheet = paste0("RISKSTATS_", nm)
-                              , data = df
-                             )
+        df = data.frame(Rn = row.names(hist), hist, row.names = NULL)
+        
+        wb = loadWorkbook(filename = "Sub_Risk_Template_TEST.xlsx", create = F)
+        writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
+        createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
+        writeNamedRegion(wb, data = as.data.frame(toupper(nm)), name = "REPORT_NAME", header = F, rownames = NULL)
+        setForceFormulaRecalculation(wb, sheet = "RISKSTATS", value = T)
+        saveWorkbook(object=wb, file=paste0("RISK_DASHBOARD_", toupper(nm), ".xlsx"))
+        rm(wb)
+
     }
-    
     return(hist)
 }
+
+
