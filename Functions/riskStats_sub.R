@@ -49,7 +49,7 @@ riskStats_sub = function(sub, bms, width = 63, irWidth = 126, exportToExcel = T)
     index(sub.ir) = index(sub[paste(start(sub.ir), end(sub.ir), sep = "/")])
     #index(sub.ir1) = as.Date(index(sub.ir))
     sub.cor = rollingCorrelation(sub, bms, width = width)
-    sub.ewma = sqrt(ewmaCovariance(sub, lambda = lam)*Frequency(sub))
+    sub.ewma = ewmaVolatilityContribution(sub, lambda = lam)*sqrt(Frequency(sub))
     names(sub.ewma) = "EWMA Volatility"
     
     sub.cpts.meanVar = xts(ifelse(index(sub) %in% meanVarChangepoints(sub), 1, 0), order.by = index(sub))
@@ -118,6 +118,29 @@ riskStats_sub = function(sub, bms, width = 63, irWidth = 126, exportToExcel = T)
                               )
                             )
     }
+    
+    date63 = index(sub[nrow(sub)-62])
+    date252 = index(sub[nrow(sub)-252])
+    dateInception = start(na.omit(sub))
+    
+    box63 = cbind(
+                  boxStats(sub[paste(date63, end(sub), sep = "/")]),
+                  boxStats(bms[paste(date63, end(sub), sep = "/"), 1]),
+                  boxStats(bms[paste(date63, end(sub), sep = "/"), 2])
+                  )
+    
+    box252 = cbind(
+                  boxStats(sub[paste(date252, end(sub), sep = "/")]),
+                  boxStats(bms[paste(date252, end(sub), sep = "/"), 1]),
+                  boxStats(bms[paste(date252, end(sub), sep = "/"), 2])
+                )
+    
+    boxInception = cbind(
+      boxStats(sub[paste(dateInception, end(sub), sep = "/")]),
+      boxStats(bms[paste(dateInception, end(sub), sep = "/"), 1]),
+      boxStats(bms[paste(dateInception, end(sub), sep = "/"), 2])
+    )
+    
     if(exportToExcel)
     {
         df = data.frame(Rn = row.names(hist), hist, row.names = NULL)
@@ -126,7 +149,13 @@ riskStats_sub = function(sub, bms, width = 63, irWidth = 126, exportToExcel = T)
         writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
         createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
         writeNamedRegion(wb, data = as.data.frame(toupper(nm)), name = "REPORT_NAME", header = F, rownames = NULL)
+        writeNamedRegion(wb, data = box63, name = "BOX_RANGE_63", rownames = NULL, header = T)
+        writeNamedRegion(wb, data = box252, name = "BOX_RANGE_252", rownames = NULL, header = T)
+        writeNamedRegion(wb, data = boxInception, name = "BOX_RANGE_INCEPTION", rownames = NULL, header = T)
+        
         setForceFormulaRecalculation(wb, sheet = "RISKSTATS", value = T)
+        setForceFormulaRecalculation(wb, sheet = "BOXPLOTS", value = T)
+        
         saveWorkbook(object=wb, file=paste0("RISK_DASHBOARD_", toupper(nm), ".xlsx"))
         rm(wb)
 
