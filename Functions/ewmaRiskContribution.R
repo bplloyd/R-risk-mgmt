@@ -2,7 +2,7 @@ ewmaRiskContribution = function(riskFunc = "VaR", R, weights, p=0.95, lambda = 0
 {
   require(xts)
   require(PerformanceAnalytics)
-  R = R[-which(rowSums(is.na(R))==ncol(R)),]
+  R = R[which(rowSums(is.na(R))<ncol(R)),]
   Mu = colMeans(R, na.rm = T)
   
   if (!is.matrix(R)) {
@@ -21,14 +21,21 @@ ewmaRiskContribution = function(riskFunc = "VaR", R, weights, p=0.95, lambda = 0
   h1 = 1 - lambda
   x = na.omit(x_full)
   
-  V1 = riskFunc(weights = weights, p = p, method = "gaussian", portfolio_method = "component", sigma = Sigt, mu = Mu)$contribution
+  
+  if(is.vector(weights))
+      weights_t = weights
+  if(is.matrix(weights))
+      weights_t = weights[1,]
+  
+  V1 = riskFunc(weights = weights_t, p = p, method = "gaussian", portfolio_method = "component", sigma = Sigt, mu = Mu)$contribution
   
   for (t in 2:nT) {
     xx = as.numeric(x[t - 1, ])
     for (i in 1:k) {
       Sigt[i, ] = h1 * xx * xx[i] + lambda * Sigt[i,]
     }
-    V1 = rbind(V1,  riskFunc(weights = weights, p = p, method = "gaussian", portfolio_method = "component", sigma = Sigt, mu = Mu)$contribution)
+    weights_t = weights[t,]
+    V1 = rbind(V1,  riskFunc(weights = weights_t, p = p, method = "gaussian", portfolio_method = "component", sigma = Sigt, mu = Mu)$contribution)
   }
   colnames(V1) = names(R)
   return(xts(V1, order.by = index(rtn)))

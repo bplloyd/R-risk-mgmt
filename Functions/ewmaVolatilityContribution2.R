@@ -1,9 +1,24 @@
 ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
 {
   #rtn = na.omit(subs$Coe)
-  require(xts)
-  R = R[which(rowSums(is.na(R))<ncol(R)),]
+#   require(xts)
+#   uft = na.omit(ufts$LSE)['2015/',]
+#   allocations.lse = rollingAllocations(785, start = start(uft), end = end(uft))
+  R=subs[,names(allocations.lse)]
+  weights = lse.alloc
+  # rm(V1)
+  # R = subs[, names(weights)]
+  #R = subs[,names(lse.alloc)]
+  weights = na.fill(weights, 0)
   Mu = colMeans(R, na.rm = T)
+  miscCol = grep("Misc", names(R))
+  if(length(miscCol)>0)
+  {
+    R = R[which(rowSums(is.na(R[,-miscCol]))<ncol(R[,-miscCol])),]
+  }
+  if(length(miscCol)==0){
+    R = R[which(rowSums(is.na(R)) < ncol(R)),]
+  }
   
   if (!is.matrix(R)) {
     rtn_full = as.matrix(R)
@@ -15,7 +30,7 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
   k = dim(rtn)[2]
   
   #x = scale(rtn, center = TRUE, scale = FALSE)
-  x_full =scale(rtn_full, center = TRUE, scale = FALSE)
+  x_full = scale(rtn_full, center = TRUE, scale = FALSE)
   Sigt = cov(x_full, use = "p")
   par = lambda
   #   MGAUS <- function(par, x = x) {
@@ -39,49 +54,38 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
   # if (lambda > 0) {
   h1 = 1 - lambda
   
-  if(is.matrix(weights))
-  {
-      if(nrow(R)>nrow(weights)){
-          firstWeightRow = which(index(rtn)==start(weights))
-      }
-      else{
-          firstWeightRow = 1
-          V1 = weights_t*(weights[1,]%*%Sigt)/rep(sqrt(t(weights[1,])%*%Sigt%*%weights[1,]), 3)
-      }
+  if(nrow(rtn)>nrow(weights)){
+    firstWeightRow = which(index(rtn)==start(weights))
   }
-  
-  if(is.vector(weights))
-    weights_t = weights
-  if(is.matrix(weights))
-    weights_t = weights[1,]
-  
-  
-  
-  if((k > 1) & (nrow(weights) >= nrow(rtn)))
-  {
-      V1 = weights_t*(weights_t%*%Sigt)/rep(sqrt(t(weights_t)%*%Sigt%*%weights_t), 3)
-      
+  if(nrow(rtn)<=nrow(weights)){
+    firstWeightRow = 1
+    w = as.vector(weights[1,])
+    V1 = w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w), ncol(Sigt))
   }
-  if(k==1)
-  {
-      V1 = sqrt(Sigt)
-  }
-  
-  
+
   for (t in 2:nT) {
-    xx = as.numeric(x[t - 1, ])
+    xx = as.numeric(rtn[t - 1, ])
     for (i in 1:k) {
-      Sigt[i, ] = h1 * xx * xx[i] + lambda * Sigt[i, 
-                                                  ]
+      Sigt[i, ] = h1 * xx * xx[i] + lambda * Sigt[i,]
     }
-    if((k > 1) & (nrow(weights) >= nrow(rtn)))
+    if(t >= firstWeightRow)
     {
-      V1 = rbind(V1, weights_t*(weights_t %*% Sigt)/rep(sqrt(t(weights_t) %*% Sigt %*% weights_t), 3))
-    else
-      V1 = rbind(V1, sqrt(Sigt))
+        
+        if(!exists("V1"))
+        {
+            w = as.vector(weights[1,])
+            V1 = w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w), ncol(Sigt))
+        }
+        else
+        {
+            w = as.vector(weights[t-firstWeightRow + 1, ])
+            V1 = rbind(V1, w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w),ncol(Sigt)))
+        }
+    }
+ 
   }
   # }
-  sigma.t = xts(V1, order.by = index(rtn))
+  sigma.t = xts(V1, order.by = index(weights))
   names(sigma.t) = colnames(Sigt)
   return(sigma.t)
 }
