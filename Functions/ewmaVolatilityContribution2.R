@@ -1,17 +1,26 @@
-ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
+ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = F)
 {
-  #rtn = na.omit(subs$Coe)
-#   require(xts)
-#   uft = na.omit(ufts$LSE)['2015/',]
-#   allocations.lse = rollingAllocations(785, start = start(uft), end = end(uft))
-  R=subs[,names(allocations.lse)]
-  weights = lse.alloc
-  # rm(V1)
-  # R = subs[, names(weights)]
-  #R = subs[,names(lse.alloc)]
+#  rm(V1)
+  R=subs[-nrow(subs), names(alpha.allocs.subs)]
+  weights = lag(alpha.allocs.subs)
+  lambda = 0.92
+  miscColR = grep("Misc", names(R))
+  miscColW = grep("Misc", names(weights))
   weights = na.fill(weights, 0)
+  if(!includeMisc)
+  {
+    R=R[,-miscColR]
+    weights = weights[,-miscColW]
+    weights = as.xts(t(apply(weights, 1, FUN = function(x)return(x/sum(x)))))
+  }
+  index(R) = as.Date(index(R))
+  index(weights) = as.Date(index(weights))
+  
+  R = R[, names(weights)]
+ 
   Mu = colMeans(R, na.rm = T)
-  miscCol = grep("Misc", names(R))
+  
+  
   if(length(miscCol)>0)
   {
     R = R[which(rowSums(is.na(R[,-miscCol]))<ncol(R[,-miscCol])),]
@@ -20,18 +29,19 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
     R = R[which(rowSums(is.na(R)) < ncol(R)),]
   }
   
-  if (!is.matrix(R)) {
-    rtn_full = as.matrix(R)
-  }
+#   if (!is.matrix(R)) {
+#     rtn_full = as.matrix(R)
+#   }
   rtn_full = R
-  rtn = R[paste0(start(na.omit(R)), "/"),]
-  rtn = na.fill(rtn, 0)
+  rtn = na.fill(R, 0)
+  #rtn = R[paste0(start(na.omit(R)), "/"),]
+  
   nT = dim(rtn)[1]
   k = dim(rtn)[2]
   
   #x = scale(rtn, center = TRUE, scale = FALSE)
   x_full = scale(rtn_full, center = TRUE, scale = FALSE)
-  Sigt = cov(x_full, use = "p")
+  Sigt = na.fill(cov(x_full, use = "p"), fill=0)
   par = lambda
   #   MGAUS <- function(par, x = x) {
   #     lambda = par[1]
@@ -64,7 +74,7 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
   }
 
   for (t in 2:nT) {
-    xx = as.numeric(rtn[t - 1, ])
+    xx = na.fill(as.numeric(rtn[t - 1, ]), fill=0)
     for (i in 1:k) {
       Sigt[i, ] = h1 * xx * xx[i] + lambda * Sigt[i,]
     }
@@ -84,10 +94,9 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92)
     }
  
   }
-  # }
   sigma.t = xts(V1, order.by = index(weights))
   names(sigma.t) = colnames(Sigt)
-  return(sigma.t)
+  return(sigma.t*sqrt(252))
 }
 
 

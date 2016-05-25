@@ -14,11 +14,11 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
 #      uft = ufts[,name]
 #      bms = cbind(sp2, hfrx$HFRXEH) 
      
-    uft = na.omit(uft)  
+    uft = na.omit(uft)['200907/', ]  
     
     endUFT = end(uft)
-    endBM1 = end(na.omit(bms[,1]))
-    endBM2 = end(na.omit(bms[,2]))
+    endBM1 = end(na.omit(bms['200907/',1]))
+    endBM2 = end(na.omit(bms['200907/',2]))
     
     minEnd = min(endUFT, endBM1, endBM2)
     uft = uft[paste0("/", minEnd)]
@@ -100,7 +100,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
                                   , uft.ewma_volcontrib_Sector
                                   , uft.ewma_volcontrib_MktCap
                                   , uft.ewma_volcontrib_SubAdvisor
-                                )
+                                )['200907/', ]
                             )
       uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
       
@@ -112,7 +112,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
       
       uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
       uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
-      hist = merge.data.frame(hist, uft.tp, by =0, all = T) 
+      hist = merge.data.frame(hist['200907/',], uft.tp['200907/',], by =0, all = T) 
     }
     if(id==784)
     {
@@ -138,7 +138,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
         , uft.exp
         , uft.ewma_volcontrib_SP_Rating
         , uft.ewma_volcontrib_SubAdvisor
-        )
+        )['200907/', ]
       )
       uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
       
@@ -150,7 +150,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
       
       uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
       uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
-      hist = merge.data.frame(hist, uft.tp, by =0, all = T) 
+      hist = merge.data.frame(hist['200907/',], uft.tp['200907/',], by =0, all = T) 
     }
     if(id==777)
     {
@@ -170,7 +170,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
                                 , uft.cpts.meanVar
                                 , uft.ewma
                                 , uft.ewma_volcontrib_SubAdvisor
-                              )
+                              )['200907/', ]
                             )
     }
     
@@ -201,7 +201,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
     {
         df = data.frame(Rn = row.names(hist), hist, row.names = NULL)
         
-        wb = loadWorkbook(filename = "UFT_Risk_Template_TEST.xlsx", create = F)
+        wb = loadWorkbook(filename = "UFT_Risk_Template_TEST_OUT.xlsx", create = F)
         writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
         createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
         
@@ -213,8 +213,8 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
         
         setForceFormulaRecalculation(wb, sheet = "RISKSTATS", value = T)
         setForceFormulaRecalculation(wb, sheet = "BOXPLOTS", value = T)
-        
-        saveWorkbook(object=wb, file=paste0("RISK_DASHBOARD_", toupper(nm), ".xlsx"))
+        #saveWorkbook(object=wb, file=paste0("RISK_DASHBOARD_", toupper(nm), ".xlsx"))
+        saveWorkbook(object=wb)
         rm(wb)
 
     }

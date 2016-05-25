@@ -3,18 +3,23 @@ rollingInformationRatio = function(Ra, Rb, width = 63, on = "days")
   require(PerformanceAnalytics)
   require(xts)
   
-  data = na.omit(cbind(Ra, Rb[,1]))
+  data = na.omit(cbind(Ra, Rb))
+  Ra = data[, names(Ra)]
+  Rb = data[, names(Rb)]
   slices = createTimeSlices2(data, initialWindow = width, on = on)
+  
   res = as.xts(t(sapply(slices, FUN = function(t)
-                    return(cbind(ActivePremium(data[t,1],data[t,2]), 
-                            TrackingError(data[t,1],data[t,2])
-                                )
-                          )
-                        )
-                )
-              )
+    return(cbind(ActivePremium(data[t,1],data[t,2]), 
+                 TrackingError(data[t,1],data[t,2])
+    )
+    )
+  )
+  )
+  )
   names(res) = c("ActivePremium", "TrackingError")
   res$InformationRatio = res$ActivePremium/res$TrackingError
+  
+  
   names(res) = paste(names(res), names(Rb)[1], sep = "_")
   
   if(ncol(Rb)>1){
@@ -38,6 +43,8 @@ rollingInformationRatio = function(Ra, Rb, width = 63, on = "days")
   
   return(res)
 }
+
+
 
 rollingInformationRatio2 = function(Ra, Rb, width = 63, on = "days")
 {

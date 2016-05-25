@@ -5,6 +5,9 @@ contributionSummary = function(id, start, end)
   library(dplyr)
   ch = paste("driver={SQL Server}", "server=HAT-SQL-01","database=Hatteras_Sandbox_Tools", "trusted_connection=true", sep = "; ")
   ch = odbcDriverConnect(ch)
+#   id = 785
+#   start = start(uft)
+#   end = end(uft)
 #   id = 58
 #   start = "2016-03-01"
 #   end = "2016-03-31"
@@ -62,13 +65,14 @@ contributionSummary = function(id, start, end)
                 , SUM(s.NAV_Contribution_Market/n.NAV) 'Contribution_Market'
                 , SUM(s.NAV_Contribution_Income/n.NAV) 'Contribution_Income'
                 , SUM(s.NAV_Contribution_Expenses/n.NAV) 'Contribution_Expenses'
-                , s.SubAdvisor
+                , a.Abbreviation 'SubAdvisor'
                 , s.MBS_Type
                 , s.Fund_UID
                 , s.SubAdvised_UID
             FROM 
               HAMF.Summary_Contribution AS s
               LEFT JOIN StartNavs AS n ON (n.DateReported = s.DateReported AND n.Id = s.Account_ID)
+              LEFT JOIN HAMF.SubAdvisors AS a ON s.SubAdvised_UID = a.SubAdvised_UID 
             WHERE 
               s.Account_ID = ", id, "
               AND s.datereported BETWEEN ", start, " AND ", end, "
@@ -82,7 +86,7 @@ contributionSummary = function(id, start, end)
               , s.Country
               , s.Long_Short
               , s.Mkt_Cap
-              , s.SubAdvisor
+              , a.Abbreviation
               , s.MBS_Type
               , s.Fund_UID
               , s.SubAdvised_UID")
