@@ -36,5 +36,6 @@ rollingAlphaBeta = function(Ra, Rb, width = 63)
       names(res)[(4*(i-1)+1):(4*i)] = paste(names(res)[(4*(i-1)+1):(4*i)], names(Rb)[i], sep = "_")
     }
   }
+  index(res) = as.Date(index(res))
   return(res)
 }

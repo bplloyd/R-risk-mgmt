@@ -10,7 +10,7 @@ getWeights = function(subs.o = NULL, asOfDate=NULL, includeMisc = F)
   }
   
   if(includeMisc)
-    return(lapply(allocations, function(x){w =  as.vector(x$Allocation); names(w) = as.vector(x$Name); return(w/sum(w))}))
+    return(lapply(allocations, function(x){w =  as.vector(x$Allocation); if(length(w)>0){names(w) = as.vector(x$Name); return(w/sum(w))}else{return(NULL)}}))
   if(!includeMisc)
-    return(lapply(allocations, function(x){w =  as.vector(x$Allocation); names(w) = as.vector(x$Name);  w = w[-grep("Misc", names(w))]; return(w/sum(w))}))
+    return(lapply(allocations, function(x){w =  as.vector(x$Allocation); if(length(w)>0){names(w) = as.vector(x$Name);  w = w[-grep("Misc", names(w))]; return(w/sum(w))}else{return(NULL)}}))
 }

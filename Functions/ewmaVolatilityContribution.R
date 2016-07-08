@@ -1,4 +1,4 @@
-ewmaVolatilityContribution = function(rtn, lambda=0.94)
+ewmaVolatilityContribution = function(rtn, lambda=0.93)
 {
   #rtn = na.omit(subs$Coe)
   require(xts)
@@ -60,7 +60,7 @@ ewmaVolatilityContribution = function(rtn, lambda=0.94)
   # }
   sigma.t = xts(V1, order.by = index(rtn))
   names(sigma.t) = colnames(Sigt)
-  return(sigma.t)
+  return(sqrt(252)*sigma.t)
 }
 
 

@@ -1,4 +1,4 @@
-riskStats_SP5 = function(width = 63, exportToExcel = T)
+riskStats_SP5 = function(asOfDate, width = 63, exportToExcel = T)
 {
     require(quantmod)
     require(TTR)
@@ -22,41 +22,16 @@ riskStats_SP5 = function(width = 63, exportToExcel = T)
     sp5_yahoo_r = na.omit(CalculateReturns(sp5_yahoo[, "Adjusted Close"])) 
     
     sp5_r = rbind(sp5_yahoo_r[1:(which(index(sp5_yahoo_r)==start(sp5_r))-1)], sp5_r)
-    sp5_r = sp5_r
+    sp5_r = sp5_r[paste0("/",asOfDate),]
     
     cboe = loadCBOE()
+    cboe = cboe[paste0("/",asOfDate),]
     
     lam = 0.93
     
-    sp5.ewma = sqrt(ewmaCovariance(sp5_r, lambda = lam)*Frequency(sp5_r))
-    
-    sp5.bar = sp5_r
-    names(sp5.bar) = "Daily Return"
-    
-    sp5.cum = cumulativeReturn(sp5_r)
-    names(sp5.cum) = "Cumulative Return"
   
-    sp5.vol = rollapply(sp5_r, width = width, FUN = function(x)return(sqrt(252)*sd(x)))
-    names(sp5.vol) = "Volatility"
     
-    sp5.dvol = rollapply(sp5_r, width = width, FUN = function(x)return(sqrt(252)*DownsideDeviation(x)))
-    names(sp5.dvol) = "Downside Volatility"
-    
-    sp5.dd = as.xts(drawdowns(as.timeSeries(sp5_r)))
-    index(sp5.dd) = as.Date(index(sp5.dd))
-    names(sp5.dd) = "Drawdown"
-    
-    sp5.es = apply.rolling(sp5_r, width = width, FUN = function(R)return(ES(R, p = 0.99, method = "gaussian")))
-    names(sp5.es) = "ETL"
-    
-    sp5.VaR = apply.rolling(sp5_r, width = width, FUN = function(R)return(VaR(R, p = 0.99, method = "gaussian")))
-    names(sp5.VaR) = "VaR"
-    
-    sp5.cpts_meanVar = xts(ifelse(index(sp5_r) %in% meanVarChangepoints(sp5_r), 1, 0), order.by = index(sp5_r))
-    names(sp5.cpts_meanVar) = c("Changepoints (meanvar)")
-  
-    sp5.cpts_var =  xts(ifelse(index(sp5_r) %in% varChangepoints(sp5_r), 1, 0), order.by = index(sp5_r))
-    names(sp5.cpts_var) = c("Changepoints (vol)")
+
     
     sp5.EMA = cbind(EMA(sp5_cl, 50),  EMA(sp5_cl, 100),EMA(sp5_cl, 200))
     names(sp5.EMA) = c("EMA_50", "EMA_100", "EMA_200")
@@ -93,15 +68,15 @@ riskStats_SP5 = function(width = 63, exportToExcel = T)
                           )
 
   
-    date63 = index(sp5_r[nrow(sp5_r)-62])
-    date252 = index(sp5_r[nrow(sp5_r)-251])
-    dateInception = start(na.omit(sp5_r))
-    
-    sp.boxStats = cbind(
-      boxStats(sp5_r[paste(date63, end(sp5_r), sep = "/")]),
-      boxStats(sp5_r[paste(date252, end(sp5_r), sep = "/")]),
-      boxStats(sp5_r[paste(dateInception, end(sp5_r), sep = "/")])
-    )
+#     date63 = index(sp5_r[nrow(sp5_r)-62])
+#     date252 = index(sp5_r[nrow(sp5_r)-251])
+#     dateInception = start(na.omit(sp5_r))
+#     
+#     sp.boxStats = cbind(
+#       boxStats(sp5_r[paste(date63, end(sp5_r), sep = "/")]),
+#       boxStats(sp5_r[paste(date252, end(sp5_r), sep = "/")]),
+#       boxStats(sp5_r[paste(dateInception, end(sp5_r), sep = "/")])
+#     )
     
   
     
@@ -114,7 +89,7 @@ riskStats_SP5 = function(width = 63, exportToExcel = T)
         #writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
         createSheet(wb, name = "RISKSTATS")
         writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
-        createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
+        #createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
         
         # writeNamedRegion(wb, data = as.data.frame(toupper(nm)), name = "REPORT_NAME", header = F, rownames = NULL)
         

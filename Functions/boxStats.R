@@ -4,5 +4,3 @@ boxStats = function(R)
   row.names(result) = c("Min", "Q1", "Q2", "Q3", "Max")
   return(result)
 }
-
-R = cbind(ufts$LSE['200907/'], sp2['200907/'], na.omit(CalculateReturns(inds$HFRXEH))['200907/'])

@@ -5,54 +5,56 @@ loadPOFs = function(){
   require(PerformanceAnalytics)
   connStr = "driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true"
   cn = odbcDriverConnect(connStr)
-  qry = "WITH 
-	Dates AS
-  (
-  select distinct 
-  cast(datereported as date) 'DateReported'
-  from 
-  hatteras_securitydb.dbo.dailytotalreturn
-  )
-  SELECT
-    d.DateReported
-    , p.ALPHX
-    , p.ALPIX
-    , p.HHSIX
-    , p.HFINX
-    , p.HLSIX
-    , p.HMFIX
-  FROM
-  Dates AS d
-  JOIN
-  (
-  select 
-  CAST(n.DateReported AS datetime) 'DateReported'
-  , c.Symbol
-  , n.NAV_Adjusted
-  from 
-  hamf.pof_nav AS n
-  LEFT JOIN hatteras_Securitydb.dbo.fundclass AS c ON n.Fund_UID = c.Fund_UID and n.FundClass_UID = c.FundClass_UID	
-  where
-  n.FundClass_UId <> 99
-  ) AS A
-  PIVOT(MAX(A.NAV_Adjusted) FOR A.Symbol IN ([ALPHX],[ALPIX],[HHSIX],[HFINX],[HLSIX], [HMFIX])) AS P ON d.DateReported = P.DateReported
-  ORDER BY d.DateReported"
-  pofs = sqlQuery(cn,qry)
-  pofs= as.xts(pofs[,2:7], order.by = as.Date.character(pofs$DateReported))
-  maxDate = as.Date.character(end(pofs), format = '%Y-%m-%d')
-
+  qry = "SELECT 
+           v.DateReported
+          , CASE v.FundClass_UID
+              WHEN 99 THEN 'ALPHA_WAvg'
+              WHEN 999 THEN 'ALPHA_FSL'
+              ELSE c.Symbol
+            END 'Name'
+          , v.NAV_Adjusted 'NAV'
+        FROM 
+          HAMF.POF_NAV AS v 
+          LEFT JOIN Hatteras_SecurityDB.dbo.FundClass AS c ON v.FundClass_UID = c.FundClass_UID
+        WHERE
+          CASE v.FundClass_UID
+              WHEN 99 THEN 'ALPHA_WAvg'
+              WHEN 999 THEN 'ALPHA_FSL'
+              ELSE c.Symbol
+            END IN ('ALPHA_FSL', 'ALPHA_WAvg', 'ALPHX', 'ALPIX', 'HHSIX', 'HLSIX', 'HFINX', 'HMFIX')
+        ORDER BY
+          v.DateReported"
+  pofs = dcast.data.table(data.table(sqlQuery(cn,qry)), formula = DateReported ~ Name, fun.aggregate = mean)
+  pofs$DateReported = as.Date.factor(pofs$DateReported)
+  res = as.xts.data.table(pofs)
+  res = CalculateReturns(res)
+  
+  maxDate = as.Date.character(end(na.omit(res)), format = '%Y-%m-%d')
   qry2 = "SELECT CAST(MAX(d.DateReported) AS date) 'DateReported' FROM Hatteras_SecurityDB.dbo.DailyTotalReturn AS d"
+  
   maxDateDTR = sqlQuery(cn,qry2)
   maxDateDTR = as.Date.factor(maxDateDTR[[1]])
-  pofs = pofs %>% CalculateReturns()
-  if(maxDate!=maxDateDTR){
-    qry3 = "SELECT CAST(d.DateReported as date) 'DateReported', c.Symbol, d.OneDayReturn/100 'OneDayReturn' FROM Hatteras_SecurityDB.dbo.DailyTotalReturn AS d LEFT JOIN hatteras_Securitydb.dbo.fundclass AS c ON d.Fund_UID = c.Fund_UID and d.FundClass_UID = c.FundClass_UID WHERE d.DateReported > '"
-    qry3 = paste(qry3, maxDate, sep = ' ')
-    qry3 = paste(qry3,"') as A",  sep = ' ' )
-    qry3 = paste("SELECT p.* FROM (", qry3, sep = '')
-    qry3 = paste(qry3, "PIVOT(MAX(a.OneDayReturn) FOR a.SYMBOL IN ([ALPHX],[ALPIX],[HHSIX],[HFINX],[HLSIX], [HMFIX])) AS p ORDER BY p.DateReported", sep = ' ')
-    pofs2 = sqlQuery(cn, qry3)
-    pofs = rbind.xts(pofs, as.xts(pofs2[,names(pofs)], order.by = as.Date.character(pofs2$DateReported)))
+  
+  if(maxDate!=maxDateDTR)
+  {
+      qry3 = "SELECT CAST(d.DateReported as date) 'DateReported', c.Symbol, d.OneDayReturn/100 'OneDayReturn' FROM Hatteras_SecurityDB.dbo.DailyTotalReturn AS d LEFT JOIN hatteras_Securitydb.dbo.fundclass AS c ON d.Fund_UID = c.Fund_UID and d.FundClass_UID = c.FundClass_UID WHERE d.DateReported > '"
+      qry3 = paste(qry3, maxDate, sep = ' ')
+      qry3 = paste(qry3,"') as A",  sep = ' ' )
+      qry3 = paste("SELECT p.* FROM (", qry3, sep = '')
+      qry3 = paste(qry3, "PIVOT(MAX(a.OneDayReturn) FOR a.SYMBOL IN ([ALPHX],[ALPIX],[HHSIX],[HFINX],[HLSIX], [HMFIX])) AS p ORDER BY p.DateReported", sep = ' ')
+      pofs2 = data.table(sqlQuery(cn, qry3))
+      pofs2$DateReported = as.Date.factor(pofs2$DateReported)
+      res2 = as.xts.data.table(pofs2)
+      if(as.Date(maxDateDTR) %in% index(res))
+      {
+        res[as.Date(maxDateDTR), names(res2)] = res2
+      }
+      else
+      {
+        res2$ALPHA_FSL = NA
+        res2$ALPHA_WAvg = NA
+        res = rbind(res, res2[, names(res)])
+      }
     }
-  return(pofs)
+  return(res)
 }

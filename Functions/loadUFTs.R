@@ -3,16 +3,26 @@ loadUFTs = function(){
   require(magrittr)
   require(xts)
   require(PerformanceAnalytics)
-  cn = odbcDriverConnect("driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true")
-  
-  ufts = sqlQuery(cn,"select p.DateReported, p.[777] 'MF', p.[782] 'MN', p.[783] 'ED', p.[784] 'LSD', p.[785] 'LSE' from 
-(
-  select CAST(v.DateReported as datetime) 'DateReported', v.Fund_UID, v.NAV from 
-  HAMF.UFT_NAV as v
-  ) AS a
-  PIVOT(max(a.Nav) FOR a.FUnd_UID IN ([777], [782], [783], [784], [785])) as P
-  order by P.DateReported")
-  ufts = as.xts(ufts[,2:6], order.by = as.Date.POSIXct(ufts$DateReported))
-  #names(ufts) = c('MF', 'MN', 'ED', 'LSD', 'LSE')
-  return(ufts %>% CalculateReturns())
+  connStr = "driver={SQL Server}; server=HAT-SQL-01; database=Hatteras_Sandbox_Tools; trusted_connection=true"
+  cn = odbcDriverConnect(connStr)
+  qry = "SELECT
+            v.DateReported
+            , CASE v.Fund_UID
+                 WHEN 777 THEN 'MF'
+                 WHEN 782 THEN 'MN'
+                 WHEN 783 THEN 'ED'
+                 WHEN 784 THEN 'LSD'
+                 WHEN 785 THEN 'LSE'
+              END 'Name'
+            , v.NAV_Backfilled 'NAV'
+          FROM 
+            HAMF.UFT_NAV AS v 
+          WHERE
+            v.DateReported >= '2009-06-30'"
+    
+  ufts = dcast.data.table(data.table(sqlQuery(cn,qry)), formula = DateReported ~ Name, fun.aggregate = mean)
+  ufts$DateReported = as.Date.factor(ufts$DateReported)
+  res = as.xts.data.table(ufts)
+  res = CalculateReturns(res)
+  return(res)
 }

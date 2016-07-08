@@ -29,15 +29,19 @@ contributionSummary = function(id, start, end)
 #   return(executeSP(proc, params))
   if(id < 300)
   {
-    navSource = "SUB_NAV"
+    navSource = "HAMF.SUB_NAV"
     idCol = "SubAdvised_UID"
   }  
   if(id %in% c(777, 782, 783, 784, 785))
   {
-    navSource = "UFT_NAV"
+    navSource = "HAMF.UFT_NAV"
     idCol = "Fund_UID"
   }
-    
+  if(id %in% c(774, 786))
+  {
+    navSource = "dbo.v_NAV_POF_Calculated_FLASHREPORT"
+    idCol = "Fund_UID"
+  }  
   qry = paste0("WITH 
                   StartNavs AS 
                   (
@@ -46,7 +50,7 @@ contributionSummary = function(id, start, end)
                     		, n.NAV
                     		, n.", idCol, " 'Id'
                     	FROM 
-                    		HAMF.", navSource, " AS n
+                    		", navSource, " AS n
                     		LEFT JOIN v_LagDate_FLASHREPORT AS ld ON n.DateReported = ld.Lag
                     	WHERE
                     		n.", idCol, " = ", id, "
@@ -54,9 +58,15 @@ contributionSummary = function(id, start, end)
 		              )
               SELECT	
                 s.DateReported
-                , s.Asset_Type
+                , CASE
+                      WHEN ((s.Fund_UID = 777) AND (s.Asset_Type = 'EQ')) THEN 'MF'
+                      ELSE s.Asset_Type
+                  END 'Asset_Type'
                 , s.Security_Type
-                , s.Sector
+                 , CASE
+                      WHEN ((s.Fund_UID = 777) AND (s.Asset_Type = 'EQ')) THEN 'MF'
+                      ELSE s.Sector
+                    END 'Sector'
                 , s.SP_Rating
                 , s.Country
                 , s.Long_Short
@@ -69,10 +79,16 @@ contributionSummary = function(id, start, end)
                 , s.MBS_Type
                 , s.Fund_UID
                 , s.SubAdvised_UID
+                , CASE
+                    WHEN s.Fund_UID <> 777 THEN t.HamfType
+                    ELSE 'MF'
+                  END 
+                  'HAMF_TYPE'
             FROM 
               HAMF.Summary_Contribution AS s
               LEFT JOIN StartNavs AS n ON (n.DateReported = s.DateReported AND n.Id = s.Account_ID)
               LEFT JOIN HAMF.SubAdvisors AS a ON s.SubAdvised_UID = a.SubAdvised_UID 
+              LEFT JOIN HAMF.HAMF_TYPES AS t ON s.Security_Type = t.SecurityType
             WHERE 
               s.Account_ID = ", id, "
               AND s.datereported BETWEEN ", start, " AND ", end, "
@@ -89,7 +105,8 @@ contributionSummary = function(id, start, end)
               , a.Abbreviation
               , s.MBS_Type
               , s.Fund_UID
-              , s.SubAdvised_UID")
+              , s.SubAdvised_UID
+              , t.HamfType")
   res = sqlQuery(ch, qry)
   res$DateReported = as.Date.factor(res$DateReported)
   #res = as.data.table(res)

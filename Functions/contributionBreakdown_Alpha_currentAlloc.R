@@ -6,6 +6,7 @@ contributionBreakdown_Alpha_currentAlloc = function(breakdown, start, end)
   if("dplyr" %in% loadedNamespaces()){
     detach("package:dplyr", unload=TRUE)
   }
+  start = "2015-07-0"
   end = "2016-04-29"
   breakdown = "Asset_Type"
   currentAllocs = pofAllocations_subs_singleDay(id=786, date = end)

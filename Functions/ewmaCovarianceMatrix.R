@@ -1,4 +1,4 @@
-ewmaCovarianceMatrix = function(rtn, lambda=0.92)
+ewmaCovarianceMatrix = function(rtn, lambda=0.93)
 {
   
   if (!is.matrix(rtn)) {

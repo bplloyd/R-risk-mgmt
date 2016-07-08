@@ -1,0 +1,15 @@
+charts.geomInformationRatio = function(Ra, Rb, width = 63, beta=NULL) 
+{
+  require(PerformanceAnalytics)
+  require(xts)
+  if(is.null(beta))
+      beta = CAPM.beta(Ra, Rb)
+  data = rollGeomIR(Ra = Ra, Rb = Rb, beta = beta, width = width)
+  layout(matrix(c(1, 2,3)), heights = c(1,1,1), widths = 1)
+  par(mar = c(3, 3, 3, 3))
+  chart.TimeSeries(data$GeomActivePremium)
+  par(mar = c(3, 3, 3, 3))
+  chart.TimeSeries(data$GeomTrackingError)
+  par(mar = c(3, 3, 3, 3))
+  chart.TimeSeries(data$GeomInformationRatio)
+}

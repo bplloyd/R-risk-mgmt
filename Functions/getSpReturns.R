@@ -15,7 +15,7 @@ getSpReturns2 = function(){
   require(xts)
   require(PerformanceAnalytics)
   require(quantmod)
-  getSymbols('^SP500TR')
+  getSymbols('^SP500TR', from = "1980-01-01")
   sp = CalculateReturns(Ad(SP500TR))
   names(sp)[1] = "SPTR"
   return(sp)

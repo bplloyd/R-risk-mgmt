@@ -29,12 +29,36 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
     fundId = getFundID(id)
     lam = switch(as.character(fundId), '785' = 0.94, '784' = 0.91, '783' = 0.92, '782' = 0.95, '777' = 0.98)
     
-    if(id!=777)
+    subs = loadSubAdvisors()
+    subs = subs[paste0("/", minEnd), ]
+    #subs = subs[paste0("/", minEnd),]
+    allocs.subs = getAllocations_Rolling('2015-01-01', minEnd)[[nm]]
+    
+    
+    standAlones = sqrt(252*ewmaCovariance(na.omit(subs[,names(allocs.subs)[1]])))
+    
+    
+    for(i in 2:ncol(allocs.subs))
+    {
+      standAlones = cbind(standAlones, sqrt(252*ewmaCovariance(na.omit(subs[,names(allocs.subs)[i]]))))
+    }
+    names(standAlones) = names(allocs.subs)
+    
+    ewma.subs_curweights = ewmaVolatilityContribution2(R = subs[,names(allocs.subs)], weights = allocs.subs, lambda = lam, includeMisc = T, curWeightsOnly = T)
+    ewma.subs_histweights = ewmaVolatilityContribution2(R = subs[,names(allocs.subs)], weights = allocs.subs, lambda = lam, includeMisc = T, curWeightsOnly = F)
+    
+    if((id != 777 ) & (id != 784))
     {
       uft.cbd_Sector = contributionBreakdown(id, "Sector", start = start(uft), end = end(uft))
       uft.cbd_MktCap = contributionBreakdown(id, "Mkt_Cap", start = start(uft), end = end(uft))
-      uft.ewma_volcontrib_Sector = ewmaVolatilityContribution(uft.cbd_Sector)
-      uft.ewma_volcontrib_MktCap = ewmaVolatilityContribution(uft.cbd_MktCap)
+      uft.ewma_Sector = ewmaVolatilityContribution(uft.cbd_Sector,lambda = lam)
+      uft.ewma_MktCap = ewmaVolatilityContribution(uft.cbd_MktCap,lambda = lam)
+    }
+    
+    if(id == 784)
+    {
+      uft.ewma_AssetType = ewmaVolatilityContribution(rtn=contributionBreakdown(id, breakdown = "HAMF_TYPE", start = "2015-04-15", end = end(uft)), lambda = lam)
+      uft.ewma_Rating = ewmaVolatilityContribution(rtn=contributionBreakdown(id, breakdown = "SP_Rating", start = "2015-04-15", end = end(uft)), lambda = lam)
     }
     
     uft.cbd_SubAdvisor = contributionBreakdown(id, "SubAdvisor", start = start(uft), end = end(uft))
@@ -74,12 +98,15 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
     uft.cpts.var =  xts(ifelse(index(uft) %in% varChangepoints(uft), 1, 0), order.by = index(uft))
     names(uft.cpts.var) = c("Changepoints (vol)")
     
+    relVol = as.data.frame(relativeVolatility(Ra = uft, Rb = bms[,1], width = width))
+    standAlones = as.data.frame(standAlones)
+    allocs.subs = as.data.frame(allocs.subs)
   
-    if((id != 777) & (id!=784))
+    if((id != 777) & (id != 784))
     {
       uft.exp = rollingExposure(id)
       uft.sectExp = sectorExposure(id, on = "days")
-      hist =  as.data.frame(
+      uft.stats =  as.data.frame(
         cbind
                               (
                                   uft.bar
@@ -95,66 +122,66 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
                                   , uft.cpts.var
                                   , uft.cpts.meanVar
                                   , uft.ewma
-                                  , uft.sectExp
                                   , uft.exp
-                                  , uft.ewma_volcontrib_Sector
-                                  , uft.ewma_volcontrib_MktCap
-                                  , uft.ewma_volcontrib_SubAdvisor
+                                  , uft.sectExp
                                 )['200907/', ]
                             )
-      uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
       
-      for(i in 2:ncol(uft.tp)){
-        if(is.factor(uft.tp[,i])){
-          uft.tp[,i] = as.character.factor(uft.tp[,i])
-        }
-      }
       
-      uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
-      uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
-      hist = merge.data.frame(hist['200907/',], uft.tp['200907/',], by =0, all = T) 
+      
+#       uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
+#       
+#       for(i in 2:ncol(uft.tp)){
+#         if(is.factor(uft.tp[,i])){
+#           uft.tp[,i] = as.character.factor(uft.tp[,i])
+#         }
+#       }
+#       
+#       uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
+#       uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
+#       uft.stats = merge.data.frame(uft.stats['200907/',], uft.tp['200907/',], by =0, all = T) 
     }
     if(id==784)
     {
       uft.exp = rollingExposure(id)
-      uft.sectExp = sectorExposure(id, on = "days")
-      hist =  as.data.frame(
+      uft.ratingExp = exposureBreakdown(id, breakdown = "SP_Rating", start = "2015-04-15", end = minEnd)
+      uft.stats =  as.data.frame(
         cbind
         (
-        uft.bar
-        , uft.cum
-        , uft.alpha
-        , uft.vol
-        , uft.dvol
-        , uft.dd
-        , uft.es
-        , uft.VaR
-        , uft.ir
-        , uft.cor
-        , uft.cpts.var
-        , uft.cpts.meanVar
-        , uft.ewma
-        , uft.sectExp
-        , uft.exp
-        , uft.ewma_volcontrib_SP_Rating
-        , uft.ewma_volcontrib_SubAdvisor
+          uft.bar
+          , uft.cum
+          , uft.alpha
+          , uft.vol
+          , uft.dvol
+          , uft.dd
+          , uft.es
+          , uft.VaR
+          , uft.ir
+          , uft.cor
+          , uft.cpts.var
+          , uft.cpts.meanVar
+          , uft.ewma
+          , uft.exp
+          , uft.ratingExp
+#         , uft.ewma_volcontrib_SP_Rating
+#         , uft.ewma_volcontrib_SubAdvisor
         )['200907/', ]
       )
-      uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
-      
-      for(i in 2:ncol(uft.tp)){
-        if(is.factor(uft.tp[,i])){
-          uft.tp[,i] = as.character.factor(uft.tp[,i])
-        }
-      }
-      
-      uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
-      uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
-      hist = merge.data.frame(hist['200907/',], uft.tp['200907/',], by =0, all = T) 
+#       uft.tp = executeSP(procname = "usp_Top_Position_UFT", paramstring = paste0("@id = ", id))
+#       
+#       for(i in 2:ncol(uft.tp)){
+#         if(is.factor(uft.tp[,i])){
+#           uft.tp[,i] = as.character.factor(uft.tp[,i])
+#         }
+#       }
+#       
+#       uft.tp$DateReported = as.Date.factor(uft.tp$DateReported)
+#       uft.tp = data.frame(uft.tp[,2:ncol(uft.tp)], row.names = uft.tp$DateReported)
+#       uft.stats = merge.data.frame(uft.stats['200907/',], uft.tp['200907/',], by =0, all = T) 
     }
     if(id==777)
     {
-      hist =  as.data.frame(cbind
+      uft.stats =  as.data.frame(cbind
                               (
                                 uft.bar
                                 , uft.cum
@@ -175,7 +202,7 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
     }
     
     date63 = index(uft[nrow(uft)-62])
-    date252 = index(uft[nrow(uft)-252])
+    date252 = index(uft[nrow(uft)-251])
     dateInception = start(na.omit(uft))
     
     box63 = cbind(
@@ -199,26 +226,52 @@ riskStats_uft = function(uft, bms, width = 63, irWidth = 126, exportToExcel = T)
     
     if(exportToExcel)
     {
-        df = data.frame(Rn = row.names(hist), hist, row.names = NULL)
+        wb = loadWorkbook(filename = paste0(nm, "_Risk_Template_.xlsx"), create = T)
+        if((id != 777) & (id != 784))
+        {
+          createSheet(wb, name = "EWMA_SECTOR")
+          writeWorksheet(object = wb, data = as.data.frame(uft.ewma_Sector), sheet = "EWMA_SECTOR", startRow = 1, startCol = 1, header = T, rownames = "Date")
+          createSheet(wb, name = "EWMA_MKTCAP")
+          writeWorksheet(object = wb, data = as.data.frame(uft.ewma_MktCap), sheet = "EWMA_MKTCAP", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        }
+        if(id == 784)
+        {
+          createSheet(wb, name = "EWMA_RATING")
+          writeWorksheet(object = wb, data = as.data.frame(uft.ewma_Rating), sheet = "EWMA_RATING", startRow = 1, startCol = 1, header = T, rownames = "Date")
+          createSheet(wb, name = "EWMA_ASSET_TYPE")
+          writeWorksheet(object = wb, data = as.data.frame(uft.ewma_AssetType), sheet = "EWMA_ASSET_TYPE", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        }
         
-        wb = loadWorkbook(filename = "UFT_Risk_Template_TEST_OUT.xlsx", create = F)
-        writeWorksheet(object = wb, data = df, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = F)
-        createName(object = wb, name = "DATA_RANGE", formula = paste0("RISKSTATS!$A$2:$BP$", nrow(df)+1), overwrite = T)
+          #         createSheet(wb, name = "EWMA_FUND")
+#         writeWorksheet(object = wb, data = as.data.frame(ewma_Fund), sheet = "EWMA_FUND", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        createSheet(wb, name = "EWMA_SUBS_CUR")
+        writeWorksheet(object = wb, data = as.data.frame(ewma.subs_curweights), sheet = "EWMA_SUBS_CUR", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        createSheet(wb, name = "EWMA_SUBS_HIST")
+        writeWorksheet(object = wb, data = as.data.frame(ewma.subs_histweights), sheet = "EWMA_SUBS_HIST", startRow = 1, startCol = 1, header = T, rownames = "Date")
         
-        writeNamedRegion(wb, data = as.data.frame(toupper(nm)), name = "REPORT_NAME", header = F, rownames = NULL)
+        createSheet(wb, name = "RISKSTATS")
+        writeWorksheet(object = wb, data = uft.stats, sheet = "RISKSTATS", startRow = 1, startCol = 2, header = T, rownames = "Date")
         
-        writeNamedRegion(wb, data = box63, name = "BOX_RANGE_63", rownames = NULL, header = T)
-        writeNamedRegion(wb, data = box252, name = "BOX_RANGE_252", rownames = NULL, header = T)
-        writeNamedRegion(wb, data = boxInception, name = "BOX_RANGE_INCEPTION", rownames = NULL, header = T)
+        createSheet(wb, name = "RELVOL")
+        writeWorksheet(object = wb, data = relVol, sheet = "RELVOL", startRow = 1, startCol = 1, header = T, rownames = "Date")
         
-        setForceFormulaRecalculation(wb, sheet = "RISKSTATS", value = T)
-        setForceFormulaRecalculation(wb, sheet = "BOXPLOTS", value = T)
-        #saveWorkbook(object=wb, file=paste0("RISK_DASHBOARD_", toupper(nm), ".xlsx"))
+        createSheet(wb, name = "STANDALONE_VOL")
+        writeWorksheet(object = wb, data = standAlones, sheet = "STANDALONE_VOL", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        
+        createSheet(wb, name = "ALLOCATIONS")
+        writeWorksheet(object = wb, data = allocs.subs, sheet = "ALLOCATIONS", startRow = 1, startCol = 1, header = T, rownames = "Date")
+        
+#         writeNamedRegion(wb, data = box63, name = "BOX_RANGE_63", rownames = NULL, header = T)
+#         writeNamedRegion(wb, data = box252, name = "BOX_RANGE_252", rownames = NULL, header = T)
+#         writeNamedRegion(wb, data = boxInception, name = "BOX_RANGE_INCEPTION", rownames = NULL, header = T)
+        
+        #         setForceFormulaRecalculation(wb, sheet = "RISKSTATS", value = T)
+        #         setForceFormulaRecalculation(wb, sheet = "BOXPLOTS", value = T)
         saveWorkbook(object=wb)
         rm(wb)
 
     }
-    return(hist)
+    return(uft.stats)
 }
 
 

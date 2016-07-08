@@ -10,6 +10,6 @@ relativeVolatility = function(Ra, Rb, width = 63)
   beta = rollingData[,2]
   
   chartData = cbind(relVol, beta, correl)
-  names(chartData) = c("Beta", "Correlation", "RelativeVolatility")
+  names(chartData) = c("RelativeVolatility","Beta", "Correlation")
   return(chartData)
 }
