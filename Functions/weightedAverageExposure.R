@@ -22,7 +22,7 @@ weightedAverageExposure = function(exposure, lambda, rolling = F)
     res = xts(t(sapply(tslices, FUN = function(t){ weights = (1-lambda)*lambda^((length(t)-1):0);
                                                       norm.factor = 1/sum(weights);
                                                       weights = norm.factor * weights;
-                                                      return(apply(exposure[t,], MARGIN = 2, FUN = function(c)return(c%*%weights)))
+                                                      return(apply(exposure[which(index(exposure) %in% t),], MARGIN = 2, FUN = function(c)return(c%*%weights)))
                                                     }
                           )
                     ),

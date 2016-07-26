@@ -11,8 +11,9 @@ getBenchmarks = function(id)
   else if((id == 786) | (id == 774))
   {
     bagg = na.omit(CalculateReturns(na.omit(inds$LBUSTRUU)))
-    sixty40 = 0.6*sp2 + 0.4*bagg
-    bms = cbind(bagg, hfrx$HFRXGL)
+    sp.bc = cbind(sp2, bagg)
+    sixty40 = 0.6*sp.bc[,1] + 0.4*sp.bc[,2]
+    bms = cbind(sixty40, hfrx$HFRXGL)
     names(bms)[1] = "SixtyForty"
   }
   return(bms)

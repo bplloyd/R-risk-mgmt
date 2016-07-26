@@ -7,5 +7,6 @@ executeSP <- function(procname, paramstring, db = "Hatteras_Sandbox_Tools", sche
   query <- paste("exec", procString, paramstring, sep = " ");
   res = sqlQuery(ch, query);
   #return(query)
+  closeAllConnections();
   return(res);
 }

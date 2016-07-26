@@ -1,4 +1,4 @@
-ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = F, curWeightsOnly = F)
+ewmaVolatilityContribution2 = function(R, weights, lambda = 0.94, includeMisc = T, curWeightsOnly = T)
 {
 #  rm(V1)
 #   R=subs[-nrow(subs), names(alpha.allocs.subs)]
@@ -6,10 +6,13 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = 
   # lambda = 0.92
   miscColR = grep("Misc", names(R))
   miscColW = grep("Misc", names(weights))
-  maxDate = min(end(R), end(weights))
-  R = R[paste0("/", maxDate),]
-  weights = weights[paste0("/", maxDate),]
-
+  
+  if(!curWeightsOnly)
+  {
+      maxDate = min(end(R), end(weights))
+      R = R[paste0("/", maxDate),]
+      weights = weights[paste0("/", maxDate),]
+  }
   
   weights = na.fill(weights, 0)
   
@@ -71,7 +74,7 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = 
     }
     if(nrow(rtn)<=nrow(weights)){
       firstWeightRow = 1
-      w = as.vector(weights[1,])
+      w = as.vector(weights[index(rtn[1,]),])
       V1 = w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w), ncol(Sigt))
     }
     
@@ -82,20 +85,23 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = 
       }
       if(t >= firstWeightRow)
       {
+        w = as.vector(weights[index(rtn[t,]),])
         if(!exists("V1"))
         {
-          w = as.vector(weights[1,])
           V1 = w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w), ncol(Sigt))
         }
         else
         {
-          w = as.vector(weights[t-firstWeightRow + 1, ])
           V1 = rbind(V1, w*(w %*% Sigt)/rep(sqrt(t(w) %*% Sigt %*% w),ncol(Sigt)))
         }
       }
-      
     }
-    sigma.t = xts(V1, order.by = index(weights))
+    if(nrow(rtn)>nrow(weights)){
+      sigma.t = xts(V1, order.by = index(weights))
+    }
+    else{
+      sigma.t = xts(V1, order.by = index(rtn))
+    }
     names(sigma.t) = colnames(Sigt)
   }
   if(curWeightsOnly)
@@ -113,7 +119,7 @@ ewmaVolatilityContribution2 = function(R, weights, lambda = 0.92, includeMisc = 
     }
     sigma.t = xts(V1, order.by = index(R))
     names(sigma.t) = colnames(Sigt)
-    sigma.t = sigma.t[,-which(sigma.t[nrow(sigma.t),]==0)]
+    #sigma.t = sigma.t[,-which(sigma.t[nrow(sigma.t),]==0)]
   }
   return(sigma.t*sqrt(252))
 }

@@ -5,6 +5,13 @@ loadTYields = function()
   return(Quandl(code="USTREASURY/YIELD", type = "xts"))
 }
 
+loadZeroCurve = function()
+{
+  library(Quandl)
+  Quandl.api_key(getQuandlKey())
+  return(Quandl(code="FED/SVENY", type = "xts"))
+}
+
 hyOAS = function()
 {
   library(Quandl)

@@ -7,5 +7,5 @@ extractSingleBetaroll = function(Fm.roll, name){
       result[i,] = t(as.vector(coef(Fm.roll[[i]])[c(name),])[1,])
     }
   }
-  return(na.fill(xts(result, order.by = as.Date.character(names(Fm.roll))), fill = 0))
+  return(xts(result, order.by = as.Date.character(names(Fm.roll))))
 }

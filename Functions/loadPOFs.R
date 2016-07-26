@@ -24,7 +24,9 @@ loadPOFs = function(){
             END IN ('ALPHA_FSL', 'ALPHA_WAvg', 'ALPHX', 'ALPIX', 'HHSIX', 'HLSIX', 'HFINX', 'HMFIX')
         ORDER BY
           v.DateReported"
-  pofs = dcast.data.table(data.table(sqlQuery(cn,qry)), formula = DateReported ~ Name, fun.aggregate = mean)
+  pofs = sqlQuery(cn,qry)
+  pofs = data.table(pofs)
+  pofs = dcast.data.table(pofs, formula = DateReported ~ Name, fun.aggregate = mean)
   pofs$DateReported = as.Date.factor(pofs$DateReported)
   res = as.xts.data.table(pofs)
   res = CalculateReturns(res)

@@ -1,11 +1,12 @@
-getR2KSectors = function(inds=NULL){
+getRussell = function(inds=NULL){
   require(xts)
   require(PerformanceAnalytics)
   if(is.null(inds))
     inds = loadIndices()
   
-  r2k = inds[,grep("RGUS", names(inds))]
-  r2k = r2k[,which(substr(names(r2k), start = 6, stop = 6)=="S")]
+  r1k = inds[,"RU10INTR"]
+  r2k = inds[,"RTY"]
+  r3k = inds[,"RU10INTR"]
   
   allNA = which(apply(r2k, 1, function(x)all(is.na(x))))
   if(length(allNA)!=0)

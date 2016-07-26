@@ -1,14 +1,15 @@
-pofAllocations_subs_singleDay = function(id=786, date, includeMisc = T)
+pofAllocations_subs_singleDay = function(id=786, date = NULL, includeMisc = T)
 {
-
-  uftAllocs = getAllocations(date)
-  pofAllocs = pofAllocations(id)
-  pofAllocs = pofAllocs[date,]
   
-  pofAllocs_subs = lapply(names(uftAllocs), FUN = function(n)return(data.frame(Name = uftAllocs[[n]]$Name, Allocation = uftAllocs[[n]]$Allocation*as.vector(pofAllocs[1,n])[1])))
-  names(pofAllocs_subs) = names(uftAllocs)
-  return(pofAllocs_subs)
-  
+    allocs = pofAllocations_subs(id = id, includeMisc = includeMisc)
+    if(is.null(date))
+      allocs = allocs[nrow(allocs),]
+    else
+      allocs = allocs[date,]
+    
+    allocs = allocs[, -which(is.na(allocs))]
+    allocs = allocs[,-which(allocs==0)]
+    return(allocs)
   
   
 #   ncols = switch(as.character(includeMisc), 
